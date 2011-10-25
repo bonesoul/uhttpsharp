@@ -16,23 +16,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-using System;
+using uhttpsharp.Embedded;
 
-namespace uhttpsharp.Embedded
+namespace uhttpsharpdemo
 {
-    public class HttpRequestHandler
+    [HttpRequestHandlerAttributes("about")]
+    public class AboutHandler:HttpRequestHandler
     {
-        public virtual HttpResponse Handle(HttpRequest httpRequest) { throw new NotImplementedException(); }
-    }
-
-    [AttributeUsage(AttributeTargets.Class)]
-    public class HttpRequestHandlerAttributes : Attribute
-    {
-        public string Function { get; private set; }
-
-        public HttpRequestHandlerAttributes(string functionName)
+        public override HttpResponse Handle(HttpRequest httpRequest)
         {
-            this.Function = functionName;
+            return new HttpResponse(HttpResponse.ResponseCode.OK,
+                                    string.Format(
+                                        "<html><head><title>uhttpsharp</title></head><body><h1>A sample http-request-handler!</h1><hr><b>{0}</b></body></html>",
+                                        HttpServer.Instance.Banner));
         }
     }
 }

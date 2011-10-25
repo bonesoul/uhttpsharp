@@ -17,22 +17,16 @@
  */
 
 using System;
+using uhttpsharp.Embedded;
 
-namespace uhttpsharp.Embedded
+namespace uhttpsharpdemo
 {
-    public class HttpRequestHandler
+    class Program
     {
-        public virtual HttpResponse Handle(HttpRequest httpRequest) { throw new NotImplementedException(); }
-    }
-
-    [AttributeUsage(AttributeTargets.Class)]
-    public class HttpRequestHandlerAttributes : Attribute
-    {
-        public string Function { get; private set; }
-
-        public HttpRequestHandlerAttributes(string functionName)
+        static void Main(string[] args)
         {
-            this.Function = functionName;
+            HttpServer.Instance.StartUp();
+            Console.ReadLine();
         }
     }
 }
