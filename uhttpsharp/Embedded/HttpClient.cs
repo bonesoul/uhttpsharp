@@ -26,13 +26,13 @@ namespace uhttpsharp.Embedded
     {
         private readonly TcpClient _client;
         private readonly Stream _inputStream;
-        private readonly StreamWriter _outputStream;
+        private readonly Stream _outputStream;
 
         public HttpClient(TcpClient client)
         {
             _client = client;
             _inputStream = new BufferedStream(_client.GetStream());
-            _outputStream = new StreamWriter(_client.GetStream());
+            _outputStream = _client.GetStream();
 
             var clientThread = new Thread(Process) {IsBackground = true};
             clientThread.Start();
@@ -48,8 +48,7 @@ namespace uhttpsharp.Embedded
                     var response = HttpRequestProxy.Instance.Route(request);
                     if (response != null)
                     {
-                        _outputStream.Write(response.Response);
-                        _outputStream.Flush();
+                        response.WriteResponse(_outputStream);
                         if (response.CloseConnection) _client.Close();
                     }
                 }

@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace uhttpsharp.Embedded
 {
@@ -40,7 +41,6 @@ namespace uhttpsharp.Embedded
         public bool CloseConnection { get; private set; }
         public ResponseCode Code { get; private set; }
         public string Content { get; private set; }
-        public string Response { get; private set; }
 
         public HttpResponse(ResponseCode code, string content)
         {
@@ -50,23 +50,21 @@ namespace uhttpsharp.Embedded
 
             Code = code;
             Content = content;
-            ForgeResponse();
         }
 
-        private void ForgeResponse()
+        public void WriteResponse(Stream stream)
         {
-            Response =
-                string.Format(
-                    "{0} {1} {2}\r\nDate: {3}\r\nServer: {4}\r\nConnection: {5}\r\nContent-Type: {6}\r\nContent-Length: {7}\r\n\r\n{8}",
-                    Protocol,
-                    (int)Code,
-                    _responseTexts[(int)Code],
-                    DateTime.Now.ToString("R"),
-                    HttpServer.Instance.Banner,
-                    CloseConnection ? "close" : "Keep-Alive",
-                    ContentType,
-                    Content.Length,
-                    Content);
+            using (var writer = new StreamWriter(stream) { NewLine = "\r\n" })
+            {
+                writer.WriteLine("{0} {1} {2}", Protocol, (int) Code, _responseTexts[(int) Code]);
+                writer.WriteLine("Date: {0}", DateTime.Now.ToString("R"));
+                writer.WriteLine("Server: {0}", HttpServer.Instance.Banner);
+                writer.WriteLine("Connection: {0}", CloseConnection ? "close" : "Keep-Alive");
+                writer.WriteLine("Content-Type: {0}", ContentType);
+                writer.WriteLine("Content-Length: {0}", Content.Length);
+                writer.WriteLine();
+                writer.Write(Content);
+            }
         }
 
         public enum ResponseCode
