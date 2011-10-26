@@ -43,6 +43,8 @@ namespace uhttpsharp.Embedded
 
         public void StartUp()
         {
+            _listener = new TcpListener(IPAddress.Loopback, Port);
+            _listener.Start();
             var serverThread = new Thread(Listen) {IsBackground = true};
             serverThread.Start();
         }
@@ -50,8 +52,6 @@ namespace uhttpsharp.Embedded
         private void Listen()
         {
             _isActive = true;
-            _listener = new TcpListener(IPAddress.Loopback, Port);
-            _listener.Start();
 
             Console.WriteLine(string.Format("Embedded httpserver started.. [{0}:{1}]", IPAddress.Loopback, Port));
 

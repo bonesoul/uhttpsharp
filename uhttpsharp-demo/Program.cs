@@ -17,6 +17,7 @@
  */
 
 using System;
+using System.Net.Sockets;
 using uhttpsharp.Embedded;
 
 namespace uhttpsharpdemo
@@ -25,8 +26,19 @@ namespace uhttpsharpdemo
     {
         private static void Main()
         {
-            HttpServer.Instance.Port = 8000;
-            HttpServer.Instance.StartUp();
+            for (var port = 8000; port <= 65535; ++port)
+            {
+                HttpServer.Instance.Port = port;
+                try
+                {
+                    HttpServer.Instance.StartUp();
+                }
+                catch (SocketException)
+                {
+                    continue;
+                }
+                break;
+            }
             Console.ReadLine();
         }
     }
