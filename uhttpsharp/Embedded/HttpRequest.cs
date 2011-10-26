@@ -58,10 +58,10 @@ namespace uhttpsharp.Embedded
             switch (tokens[0].ToUpper())
             {
                 case "GET":
-                    HttpMethod = HttpMethod.GET;
+                    HttpMethod = HttpMethod.Get;
                     break;
                 case "POST":
-                    HttpMethod = HttpMethod.POST;
+                    HttpMethod = HttpMethod.Post;
                     break;
             }
 
@@ -106,8 +106,8 @@ namespace uhttpsharp.Embedded
 
     public enum HttpMethod
     {
-        GET,
-        POST
+        Get,
+        Post
     }
 
     public sealed class HttpRequestParameters

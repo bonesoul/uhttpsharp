@@ -26,13 +26,7 @@ namespace uhttpsharp.Embedded
 {
     public sealed class HttpServer
     {
-        #region Instance
-        private static readonly HttpServer _instance = new HttpServer();
-        public static HttpServer Instance
-        {
-            get { return _instance; }
-        }
-        #endregion
+        public static readonly HttpServer Instance = new HttpServer();
 
         public int Port = 80;
         public string Address = string.Empty;

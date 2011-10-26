@@ -71,7 +71,7 @@ namespace uhttpsharp.Embedded
 
         public enum ResponseCode
         {
-            OK = 200,
+            Ok = 200,
             Found = 302,
             SeeOther = 303,
             BadRequest = 400,

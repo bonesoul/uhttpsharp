@@ -24,13 +24,7 @@ namespace uhttpsharp.Embedded
 {
     internal sealed class HttpRequestProxy
     {
-        #region Instance
-        private static readonly HttpRequestProxy _instance = new HttpRequestProxy();
-        public static HttpRequestProxy Instance
-        {
-            get { return _instance; }
-        }
-        #endregion
+        public static readonly HttpRequestProxy Instance = new HttpRequestProxy();
 
         private readonly Dictionary<string, HttpRequestHandler> _handlers = new Dictionary<string, HttpRequestHandler>();
 
@@ -42,7 +36,7 @@ namespace uhttpsharp.Embedded
         public HttpResponse Route(HttpRequest request)
         {
             var response = new HttpResponse(
-                HttpResponse.ResponseCode.OK,
+                HttpResponse.ResponseCode.Ok,
                 string.Format(
                     "<html><head><title>{0}</title></head><body><h1>Out of the way you nobgoblin! (404)</h1>" +
                     "<hr><b>{0}</b></body></html>",
@@ -50,7 +44,7 @@ namespace uhttpsharp.Embedded
             if (request.Parameters.Function == string.Empty)
             {
                 response = new HttpResponse(
-                    HttpResponse.ResponseCode.OK,
+                    HttpResponse.ResponseCode.Ok,
                     string.Format(
                         "<html><head><title>{0}</title></head><body><h1>Ah, potential customer!</h1><hr><b>{0}</b></body></html>",
                         HttpServer.Instance.Banner));
