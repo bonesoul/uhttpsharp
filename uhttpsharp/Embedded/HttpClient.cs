@@ -40,6 +40,20 @@ namespace uhttpsharp.Embedded
 
         private void Process()
         {
+            try
+            {
+                ProcessInternal();
+            }
+            catch (SocketException)
+            {
+            }
+            catch (IOException)
+            {
+                // Socket exceptions on read will be re-thrown as IOException by BufferedStream
+            }
+        }
+        private void ProcessInternal()
+        {
             while (_client.Connected)
             {
                 var request = new HttpRequest(_inputStream);
@@ -52,6 +66,8 @@ namespace uhttpsharp.Embedded
                         if (response.CloseConnection) _client.Close();
                     }
                 }
+                else
+                    _client.Close();
             }
         }
     }

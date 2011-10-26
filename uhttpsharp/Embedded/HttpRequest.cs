@@ -48,6 +48,8 @@ namespace uhttpsharp.Embedded
 
             // parse the http request
             var request = ReadLine();
+            if (request == null)
+                return;
             var tokens = request.Split(' ');
 
             if (tokens.Length != 3)
@@ -96,8 +98,9 @@ namespace uhttpsharp.Embedded
                 if (_char == '\r') continue;
                 if (_char == -1)
                 {
-                    Thread.Sleep(10);
-                    continue;
+                    if (buffer != string.Empty)
+                        return buffer;
+                    return null;
                 }
                 buffer += Convert.ToChar(_char);
             }

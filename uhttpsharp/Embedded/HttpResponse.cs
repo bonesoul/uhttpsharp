@@ -54,7 +54,7 @@ namespace uhttpsharp.Embedded
         {
             Protocol = "HTTP/1.1";
             ContentType = contentType;
-            CloseConnection = true;
+            CloseConnection = false;
 
             Code = code;
             ContentStream = contentStream;
