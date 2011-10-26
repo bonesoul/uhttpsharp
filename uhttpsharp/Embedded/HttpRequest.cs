@@ -32,22 +32,22 @@ namespace uhttpsharp.Embedded
         public string URL { get; private set; }
         public HttpRequestParameters Parameters { get; private set; }
 
-        private Stream _stream;
+        private readonly Stream _stream;
 
         public HttpRequest(Stream stream)
         {
-            this.Headers = new Dictionary<string, string>();
-            this._stream = stream;
-            this.Process();
+            Headers = new Dictionary<string, string>();
+            _stream = stream;
+            Process();
         }
 
         private void Process()
         {
-            this.Valid = false;
+            Valid = false;
 
             // parse the http request
-            string request = this.ReadLine();
-            string[] tokens = request.Split(' ');
+            var request = ReadLine();
+            var tokens = request.Split(' ');
 
             if (tokens.Length != 3)
             {
@@ -57,39 +57,47 @@ namespace uhttpsharp.Embedded
 
             switch (tokens[0].ToUpper())
             {
-                case "GET": this.HttpMethod = HttpMethod.GET; break;
-                case "POST": this.HttpMethod = HttpMethod.POST; break;
+                case "GET":
+                    HttpMethod = HttpMethod.GET;
+                    break;
+                case "POST":
+                    HttpMethod = HttpMethod.POST;
+                    break;
             }
-                        
-            this.HttpProtocol = tokens[2];
-            this.URL = tokens[1];
-            this.Parameters = new HttpRequestParameters(this.URL);
 
-            Console.WriteLine(string.Format("[{0}:{1}] URL: {2}", this.HttpProtocol, this.HttpMethod, this.URL));
+            HttpProtocol = tokens[2];
+            URL = tokens[1];
+            Parameters = new HttpRequestParameters(URL);
+
+            Console.WriteLine(string.Format("[{0}:{1}] URL: {2}", HttpProtocol, HttpMethod, URL));
 
             // get the headers
             string line;
-            while ((line = this.ReadLine()) != null)
+            while ((line = ReadLine()) != null)
             {
                 if (line.Equals("")) break;
-                string[] keys = line.Split(':');
-                this.Headers.Add(keys[0], keys[1]);
+                var keys = line.Split(':');
+                Headers.Add(keys[0], keys[1]);
             }
 
-            this.Valid = true;
+            Valid = true;
         }
 
         private string ReadLine()
         {
-            string buffer = string.Empty;
+            var buffer = string.Empty;
             int _char;
 
             while (true)
             {
-                _char = this._stream.ReadByte();
+                _char = _stream.ReadByte();
                 if (_char == '\n') break;
                 if (_char == '\r') continue;
-                if (_char == -1) { Thread.Sleep(10); continue; }
+                if (_char == -1)
+                {
+                    Thread.Sleep(10);
+                    continue;
+                }
                 buffer += Convert.ToChar(_char);
             }
 
@@ -110,19 +118,18 @@ namespace uhttpsharp.Embedded
 
         public HttpRequestParameters(string url)
         {
-            this.Function = "";
-            string[] tokens = url.Split('/');
+            Function = "";
+            var tokens = url.Split('/');
 
             if (tokens.Length > 1)
             {
-                this.Function = tokens[1];
-                this.Params = new string[tokens.Length - 2];
-                for (int i = 2; i < tokens.Length; i++)
+                Function = tokens[1];
+                Params = new string[tokens.Length - 2];
+                for (var i = 2; i < tokens.Length; i++)
                 {
-                    this.Params[i - 2] = tokens[i];
+                    Params[i - 2] = tokens[i];
                 }
             }
         }
-
     }
 }

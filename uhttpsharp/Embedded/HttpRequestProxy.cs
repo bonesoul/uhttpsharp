@@ -25,29 +25,42 @@ namespace uhttpsharp.Embedded
     internal sealed class HttpRequestProxy
     {
         #region Instance
-
-        private static HttpRequestProxy _instance = new HttpRequestProxy();
-        public static HttpRequestProxy Instance { get { return _instance; } }
-
+        private static readonly HttpRequestProxy _instance = new HttpRequestProxy();
+        public static HttpRequestProxy Instance
+        {
+            get { return _instance; }
+        }
         #endregion
 
-        private Dictionary<string, HttpRequestHandler> _handlers = new Dictionary<string, HttpRequestHandler>();
+        private readonly Dictionary<string, HttpRequestHandler> _handlers = new Dictionary<string, HttpRequestHandler>();
 
-        private HttpRequestProxy() 
+        private HttpRequestProxy()
         {
-            this.RegisterHandlers();
+            RegisterHandlers();
         }
 
         public HttpResponse Route(HttpRequest request)
         {
-            HttpResponse response = new HttpResponse(HttpResponse.ResponseCode.OK, string.Format("<html><head><title>{0}</title></head><body><h1>Out of the way you nobgoblin! (404)</h1><hr><b>{0}</b></body></html>", HttpServer.Instance.Banner));
-            if (request.Parameters.Function == string.Empty) response = new HttpResponse(HttpResponse.ResponseCode.OK, string.Format("<html><head><title>{0}</title></head><body><h1>Ah, potential customer!</h1><hr><b>{0}</b></body></html>", HttpServer.Instance.Banner));
+            var response = new HttpResponse(
+                HttpResponse.ResponseCode.OK,
+                string.Format(
+                    "<html><head><title>{0}</title></head><body><h1>Out of the way you nobgoblin! (404)</h1>" +
+                    "<hr><b>{0}</b></body></html>",
+                    HttpServer.Instance.Banner));
+            if (request.Parameters.Function == string.Empty)
+            {
+                response = new HttpResponse(
+                    HttpResponse.ResponseCode.OK,
+                    string.Format(
+                        "<html><head><title>{0}</title></head><body><h1>Ah, potential customer!</h1><hr><b>{0}</b></body></html>",
+                        HttpServer.Instance.Banner));
+            }
 
-            foreach (KeyValuePair<string, HttpRequestHandler> pair in this._handlers)
+            foreach (var pair in _handlers)
             {
                 if (pair.Key == request.Parameters.Function)
                 {
-                    HttpResponse proxyResponse = pair.Value.Handle(request);
+                    var proxyResponse = pair.Value.Handle(request);
                     if (proxyResponse != null)
                     {
                         response = proxyResponse;
@@ -61,22 +74,22 @@ namespace uhttpsharp.Embedded
 
         private void RegisterHandlers()
         {
-            foreach (Type t in Assembly.GetEntryAssembly().GetTypes())
+            foreach (var t in Assembly.GetEntryAssembly().GetTypes())
             {
                 if (t.IsSubclassOf(typeof(HttpRequestHandler)))
                 {
                     try
                     {
-                        object[] attributes = t.GetCustomAttributes(typeof(HttpRequestHandlerAttributes), true);
+                        var attributes = t.GetCustomAttributes(typeof(HttpRequestHandlerAttributes), true);
                         if (attributes.Length > 0)
                         {
                             var handler = (HttpRequestHandler)Activator.CreateInstance(t);
-                            this._handlers.Add((attributes[0] as HttpRequestHandlerAttributes).Function, handler);
+                            _handlers.Add((attributes[0] as HttpRequestHandlerAttributes).Function, handler);
                         }
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(string.Format("Exception during activating the IHttpRequestHandler: {0} - {1}", t.ToString(), e));
+                        Console.WriteLine(string.Format("Exception during activating the IHttpRequestHandler: {0} - {1}", t, e));
                     }
                 }
             }

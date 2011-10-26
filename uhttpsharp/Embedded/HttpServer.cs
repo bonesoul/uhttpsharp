@@ -19,51 +19,51 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Reflection;
+using System.Threading;
 
 namespace uhttpsharp.Embedded
 {
     public sealed class HttpServer
     {
         #region Instance
-
-        private static HttpServer _instance = new HttpServer();
-        public static HttpServer Instance { get { return _instance; } }
-
+        private static readonly HttpServer _instance = new HttpServer();
+        public static HttpServer Instance
+        {
+            get { return _instance; }
+        }
         #endregion
 
         public int Port = 80;
         public string Address = string.Empty;
         public string Banner = string.Empty;
-        
 
         private TcpListener _listener;
-        private bool _isActive = false;
+        private bool _isActive;
 
-        private HttpServer() 
+        private HttpServer()
         {
-            this.Address = string.Format("127.0.0.1:{0}", this.Port);
-            this.Banner = string.Format("uhttpsharp {0}", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            Address = string.Format("127.0.0.1:{0}", Port);
+            Banner = string.Format("uhttpsharp {0}", Assembly.GetExecutingAssembly().GetName().Version);
         }
 
         public void StartUp()
         {
-            Thread serverThread = new Thread(() => { this.Listen(); }) { IsBackground = true };
+            var serverThread = new Thread(() => { Listen(); }) {IsBackground = true};
             serverThread.Start();
         }
 
         private void Listen()
         {
-            this._isActive = true;
-            this._listener = new TcpListener(IPAddress.Loopback, this.Port);
-            this._listener.Start();
+            _isActive = true;
+            _listener = new TcpListener(IPAddress.Loopback, Port);
+            _listener.Start();
 
-            Console.WriteLine(string.Format("Embedded httpserver started.. [{0}:{1}]", IPAddress.Loopback, this.Port));
+            Console.WriteLine(string.Format("Embedded httpserver started.. [{0}:{1}]", IPAddress.Loopback, Port));
 
-            while (this._isActive)
+            while (_isActive)
             {
-                HttpClient httpClient = new HttpClient(this._listener.AcceptTcpClient());
+                var httpClient = new HttpClient(_listener.AcceptTcpClient());
             }
         }
     }

@@ -21,9 +21,9 @@ using uhttpsharp.Embedded;
 
 namespace uhttpsharpdemo
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             HttpServer.Instance.Port = 8000;
             HttpServer.Instance.StartUp();

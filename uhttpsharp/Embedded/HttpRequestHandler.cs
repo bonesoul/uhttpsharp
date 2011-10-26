@@ -22,7 +22,10 @@ namespace uhttpsharp.Embedded
 {
     public class HttpRequestHandler
     {
-        public virtual HttpResponse Handle(HttpRequest httpRequest) { throw new NotImplementedException(); }
+        public virtual HttpResponse Handle(HttpRequest httpRequest)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     [AttributeUsage(AttributeTargets.Class)]
@@ -32,7 +35,7 @@ namespace uhttpsharp.Embedded
 
         public HttpRequestHandlerAttributes(string functionName)
         {
-            this.Function = functionName;
+            Function = functionName;
         }
     }
 }

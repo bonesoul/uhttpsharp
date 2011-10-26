@@ -16,41 +16,41 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using System.IO;
 
 namespace uhttpsharp.Embedded
 {
     public sealed class HttpClient
     {
-        private TcpClient _client;
-        private Stream _inputStream;
-        private StreamWriter _outputStream;
+        private readonly TcpClient _client;
+        private readonly Stream _inputStream;
+        private readonly StreamWriter _outputStream;
 
         public HttpClient(TcpClient client)
         {
-            this._client = client;
-            this._inputStream = new BufferedStream(this._client.GetStream());
-            this._outputStream = new StreamWriter(this._client.GetStream());
-                
-            Thread clientThread = new Thread(() => { this.Process(); }) { IsBackground = true };
+            _client = client;
+            _inputStream = new BufferedStream(_client.GetStream());
+            _outputStream = new StreamWriter(_client.GetStream());
+
+            var clientThread = new Thread(() => { Process(); }) {IsBackground = true};
             clientThread.Start();
         }
 
         private void Process()
         {
-            while (this._client.Connected)
+            while (_client.Connected)
             {
-                HttpRequest request = new HttpRequest(this._inputStream);
+                var request = new HttpRequest(_inputStream);
                 if (request.Valid)
                 {
-                    HttpResponse response = HttpRequestProxy.Instance.Route(request);
+                    var response = HttpRequestProxy.Instance.Route(request);
                     if (response != null)
                     {
-                        this._outputStream.Write(response.Response);
-                        this._outputStream.Flush();
-                        if (response.CloseConnection) this._client.Close();
+                        _outputStream.Write(response.Response);
+                        _outputStream.Flush();
+                        if (response.CloseConnection) _client.Close();
                     }
                 }
             }

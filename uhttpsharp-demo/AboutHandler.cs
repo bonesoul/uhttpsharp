@@ -21,7 +21,7 @@ using uhttpsharp.Embedded;
 namespace uhttpsharpdemo
 {
     [HttpRequestHandlerAttributes("about")]
-    public class AboutHandler:HttpRequestHandler
+    public class AboutHandler : HttpRequestHandler
     {
         public override HttpResponse Handle(HttpRequest httpRequest)
         {
