@@ -40,6 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AssemblyCommon.cs">
+      <Link>Properties\AssemblyCommon.cs</Link>
+    </Compile>
     <Compile Include="Embedded\HttpClient.cs" />
     <Compile Include="Embedded\HttpRequest.cs" />
     <Compile Include="Embedded\HttpRequestHandler.cs" />

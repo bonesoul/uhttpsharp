@@ -43,6 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AssemblyCommon.cs">
+      <Link>Properties\AssemblyCommon.cs</Link>
+    </Compile>
     <Compile Include="AboutHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
