@@ -29,6 +29,7 @@ namespace uhttpsharp.Embedded
         public Dictionary<string, string> Headers { get; private set; }
         public HttpMethod HttpMethod { get; private set; }
         public string HttpProtocol { get; private set; }
+        public Uri Uri { get; private set; }
         public string URL { get; private set; }
         public HttpRequestParameters Parameters { get; private set; }
 
@@ -67,6 +68,7 @@ namespace uhttpsharp.Embedded
 
             HttpProtocol = tokens[2];
             URL = tokens[1];
+            Uri = new Uri("http://" + HttpServer.Instance.Address + "/" + URL.TrimStart('/'));
             Parameters = new HttpRequestParameters(URL);
 
             Console.WriteLine(string.Format("[{0}:{1}] URL: {2}", HttpProtocol, HttpMethod, URL));

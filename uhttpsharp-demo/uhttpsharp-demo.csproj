@@ -47,6 +47,9 @@
       <Link>Properties\AssemblyCommon.cs</Link>
     </Compile>
     <Compile Include="AboutHandler.cs" />
+    <Compile Include="ErrorHandler.cs" />
+    <Compile Include="FileHandler.cs" />
+    <Compile Include="IndexHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

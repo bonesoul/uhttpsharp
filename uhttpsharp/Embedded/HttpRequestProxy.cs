@@ -33,39 +33,40 @@ namespace uhttpsharp.Embedded
             RegisterHandlers();
         }
 
-        public HttpResponse Route(HttpRequest request)
+        private HttpResponse DefaultError()
         {
-            var response = new HttpResponse(
+            return new HttpResponse(
                 HttpResponse.ResponseCode.Ok,
                 string.Format(
                     "<html><head><title>{0}</title></head><body><h1>Out of the way you nobgoblin! (404)</h1>" +
                     "<hr><b>{0}</b></body></html>",
                     HttpServer.Instance.Banner));
-            if (request.Parameters.Function == string.Empty)
-            {
-                response = new HttpResponse(
-                    HttpResponse.ResponseCode.Ok,
-                    string.Format(
-                        "<html><head><title>{0}</title></head><body><h1>Ah, potential customer!</h1><hr><b>{0}</b></body></html>",
-                        HttpServer.Instance.Banner));
-            }
-
-            foreach (var pair in _handlers)
-            {
-                if (pair.Key == request.Parameters.Function)
-                {
-                    var proxyResponse = pair.Value.Handle(request);
-                    if (proxyResponse != null)
-                    {
-                        response = proxyResponse;
-                        break;
-                    }
-                }
-            }
-
-            return response;
         }
-
+        private HttpResponse DefaultIndex()
+        {
+            return new HttpResponse(
+                HttpResponse.ResponseCode.Ok,
+                string.Format(
+                    "<html><head><title>{0}</title></head><body><h1>Ah, potential customer!</h1><hr><b>{0}</b></body></html>",
+                    HttpServer.Instance.Banner));
+        }
+        public HttpResponse Route(HttpRequest request)
+        {
+            var function = request.Parameters.Function;
+            return
+                RouteToFunction(request, function) ??
+                RouteToFunction(request, "*") ??
+                (string.IsNullOrEmpty(function) ? (RouteToFunction(request, "") ?? DefaultIndex()) : null) ??
+                RouteToFunction(request, "404") ??
+                DefaultError();
+        }
+        private HttpResponse RouteToFunction(HttpRequest request, string function)
+        {
+            HttpRequestHandler handler;
+            if (_handlers.TryGetValue(function, out handler))
+                return handler.Handle(request);
+            return null;
+        }
         private void RegisterHandlers()
         {
             foreach (var t in Assembly.GetEntryAssembly().GetTypes())

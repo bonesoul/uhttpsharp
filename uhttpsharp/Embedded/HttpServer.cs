@@ -29,15 +29,18 @@ namespace uhttpsharp.Embedded
         public static readonly HttpServer Instance = new HttpServer();
 
         public int Port = 80;
-        public string Address = string.Empty;
         public string Banner = string.Empty;
 
         private TcpListener _listener;
         private bool _isActive;
 
+        public string Address
+        {
+            get { return string.Format("{0}:{1}", IPAddress.Loopback, Port); }
+        }
+
         private HttpServer()
         {
-            Address = string.Format("127.0.0.1:{0}", Port);
             Banner = string.Format("uhttpsharp {0}", Assembly.GetExecutingAssembly().GetName().Version);
         }
 
