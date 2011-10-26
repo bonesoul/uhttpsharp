@@ -49,7 +49,7 @@ namespace uhttpsharp.Embedded
 
         public void StartUp()
         {
-            var serverThread = new Thread(() => { Listen(); }) {IsBackground = true};
+            var serverThread = new Thread(Listen) {IsBackground = true};
             serverThread.Start();
         }
 
@@ -63,7 +63,7 @@ namespace uhttpsharp.Embedded
 
             while (_isActive)
             {
-                var httpClient = new HttpClient(_listener.AcceptTcpClient());
+                new HttpClient(_listener.AcceptTcpClient());
             }
         }
     }

@@ -84,7 +84,7 @@ namespace uhttpsharp.Embedded
                         if (attributes.Length > 0)
                         {
                             var handler = (HttpRequestHandler)Activator.CreateInstance(t);
-                            _handlers.Add((attributes[0] as HttpRequestHandlerAttributes).Function, handler);
+                            _handlers.Add(((HttpRequestHandlerAttributes)attributes[0]).Function, handler);
                         }
                     }
                     catch (Exception e)

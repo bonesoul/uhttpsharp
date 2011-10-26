@@ -34,7 +34,7 @@ namespace uhttpsharp.Embedded
             _inputStream = new BufferedStream(_client.GetStream());
             _outputStream = new StreamWriter(_client.GetStream());
 
-            var clientThread = new Thread(() => { Process(); }) {IsBackground = true};
+            var clientThread = new Thread(Process) {IsBackground = true};
             clientThread.Start();
         }
 

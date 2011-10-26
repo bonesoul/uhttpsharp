@@ -86,11 +86,10 @@ namespace uhttpsharp.Embedded
         private string ReadLine()
         {
             var buffer = string.Empty;
-            int _char;
 
             while (true)
             {
-                _char = _stream.ReadByte();
+                var _char = _stream.ReadByte();
                 if (_char == '\n') break;
                 if (_char == '\r') continue;
                 if (_char == -1)
