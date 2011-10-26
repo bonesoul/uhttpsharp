@@ -25,6 +25,7 @@ namespace uhttpsharpdemo
     {
         static void Main(string[] args)
         {
+            HttpServer.Instance.Port = 8000;
             HttpServer.Instance.StartUp();
             Console.ReadLine();
         }
