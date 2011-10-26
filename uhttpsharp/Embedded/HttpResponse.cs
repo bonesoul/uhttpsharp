@@ -57,7 +57,7 @@ namespace uhttpsharp.Embedded
         {
             Response =
                 string.Format(
-                    "{0} {1} {2}\r\nDate: {3}\r\nServer: {4}\r\nConnection: {5}\r\nContent-Type: {6}\r\nContent-Lenght: {7}\r\n\r\n{8}",
+                    "{0} {1} {2}\r\nDate: {3}\r\nServer: {4}\r\nConnection: {5}\r\nContent-Type: {6}\r\nContent-Length: {7}\r\n\r\n{8}",
                     Protocol,
                     (int)Code,
                     _responseTexts[(int)Code],
