@@ -40,31 +40,41 @@ namespace uhttpsharp.Embedded
         public string ContentType { get; private set; }
         public bool CloseConnection { get; private set; }
         public ResponseCode Code { get; private set; }
-        public string Content { get; private set; }
+        private Stream ContentStream { get; set; }
 
         public HttpResponse(ResponseCode code, string content)
         {
             Protocol = "HTTP/1.1";
-            ContentType = "text/html";
+            ContentType = "text/html; charset=utf-8";
             CloseConnection = true;
 
             Code = code;
-            Content = content;
+            ContentStream = StringToStream(content);
         }
 
+        private Stream StringToStream(string content)
+        {
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+            writer.Write(content);
+            writer.Flush();
+            return stream;
+        }
         public void WriteResponse(Stream stream)
         {
-            using (var writer = new StreamWriter(stream) { NewLine = "\r\n" })
-            {
-                writer.WriteLine("{0} {1} {2}", Protocol, (int) Code, _responseTexts[(int) Code]);
-                writer.WriteLine("Date: {0}", DateTime.Now.ToString("R"));
-                writer.WriteLine("Server: {0}", HttpServer.Instance.Banner);
-                writer.WriteLine("Connection: {0}", CloseConnection ? "close" : "Keep-Alive");
-                writer.WriteLine("Content-Type: {0}", ContentType);
-                writer.WriteLine("Content-Length: {0}", Content.Length);
-                writer.WriteLine();
-                writer.Write(Content);
-            }
+            var writer = new StreamWriter(stream) {NewLine = "\r\n"};
+            writer.WriteLine("{0} {1} {2}", Protocol, (int) Code, _responseTexts[(int) Code]);
+            writer.WriteLine("Date: {0}", DateTime.Now.ToString("R"));
+            writer.WriteLine("Server: {0}", HttpServer.Instance.Banner);
+            writer.WriteLine("Connection: {0}", CloseConnection ? "close" : "Keep-Alive");
+            writer.WriteLine("Content-Type: {0}", ContentType);
+            writer.WriteLine("Content-Length: {0}", ContentStream.Length);
+            writer.WriteLine();
+            writer.Flush();
+
+            ContentStream.Position = 0;
+            ContentStream.CopyTo(stream);
+            ContentStream.Close();
         }
 
         public enum ResponseCode
