@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System.Collections.Generic;
 using System.IO;
 using uhttpsharp.Embedded;
 
@@ -24,8 +25,33 @@ namespace uhttpsharpdemo
     [HttpRequestHandlerAttributes("*")]
     public class FileHandler : HttpRequestHandler
     {
+        public static string DefaultMimeType { get; set; }
         public static string HttpRootDirectory { get; set; }
+        public static IDictionary<string, string> MimeTypes { get; private set; }
 
+        static FileHandler()
+        {
+            DefaultMimeType = "text/plain";
+            MimeTypes = new Dictionary<string, string>
+                            {
+                                {".css", "text/css"},
+                                {".gif", "image/gif"},
+                                {".htm", "text/html"},
+                                {".html", "text/html"},
+                                {".jpg", "image/jpeg"},
+                                {".js", "application/javascript"},
+                                {".png", "image/png"},
+                                {".xml", "application/xml"},
+                            };
+        }
+
+        private string GetContentType(string path)
+        {
+            var extension = Path.GetExtension(path) ?? "";
+            if (MimeTypes.ContainsKey(extension))
+                return MimeTypes[extension];
+            return DefaultMimeType;
+        }
         public override HttpResponse Handle(HttpRequest httpRequest)
         {
             var httpRoot = Path.GetFullPath(HttpRootDirectory ?? ".");
@@ -33,7 +59,7 @@ namespace uhttpsharpdemo
             var path = Path.GetFullPath(Path.Combine(httpRoot, requestPath));
             if (!File.Exists(path))
                 return null;
-            return new HttpResponse(HttpResponse.ResponseCode.Ok, File.ReadAllText(path));
+            return new HttpResponse(GetContentType(path), File.OpenRead(path));
         }
     }
 }

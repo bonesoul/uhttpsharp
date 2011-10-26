@@ -43,16 +43,24 @@ namespace uhttpsharp.Embedded
         private Stream ContentStream { get; set; }
 
         public HttpResponse(ResponseCode code, string content)
+            : this(code, "text/html; charset=utf-8", StringToStream(content))
+        {
+        }
+        public HttpResponse(string contentType, Stream contentStream)
+            : this(ResponseCode.Ok, contentType, contentStream)
+        {
+        }
+        private HttpResponse(ResponseCode code, string contentType, Stream contentStream)
         {
             Protocol = "HTTP/1.1";
-            ContentType = "text/html; charset=utf-8";
+            ContentType = contentType;
             CloseConnection = true;
 
             Code = code;
-            ContentStream = StringToStream(content);
+            ContentStream = contentStream;
         }
 
-        private Stream StringToStream(string content)
+        private static Stream StringToStream(string content)
         {
             var stream = new MemoryStream();
             var writer = new StreamWriter(stream);
