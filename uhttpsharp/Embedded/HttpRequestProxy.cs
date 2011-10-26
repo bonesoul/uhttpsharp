@@ -36,7 +36,7 @@ namespace uhttpsharp.Embedded
         private HttpResponse DefaultError()
         {
             return new HttpResponse(
-                HttpResponse.ResponseCode.Ok,
+                HttpResponse.ResponseCode.NotFound,
                 string.Format(
                     "<html><head><title>{0}</title></head><body><h1>Out of the way you nobgoblin! (404)</h1>" +
                     "<hr><b>{0}</b></body></html>",
