@@ -27,12 +27,14 @@ namespace uhttpsharp
         private readonly TcpClient _client;
         private readonly Stream _inputStream;
         private readonly Stream _outputStream;
+        private readonly HttpRouter _router;
 
         public HttpClient(TcpClient client)
         {
             _client = client;
             _inputStream = new BufferedStream(_client.GetStream());
             _outputStream = _client.GetStream();
+            _router = new HttpRouter();
 
             var clientThread = new Thread(Process) {IsBackground = true};
             clientThread.Start();
@@ -59,7 +61,7 @@ namespace uhttpsharp
                 var request = new HttpRequest(_inputStream);
                 if (request.Valid)
                 {
-                    var response = HttpRouter.Instance.Route(request);
+                    var response = _router.Route(request);
                     if (response != null)
                     {
                         response.WriteResponse(_outputStream);

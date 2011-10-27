@@ -24,11 +24,9 @@ namespace uhttpsharp
 {
     internal sealed class HttpRouter
     {
-        public static readonly HttpRouter Instance = new HttpRouter();
-
         private readonly Dictionary<string, HttpRequestHandler> _handlers = new Dictionary<string, HttpRequestHandler>();
 
-        private HttpRouter()
+        public HttpRouter()
         {
             RegisterHandlers();
         }
