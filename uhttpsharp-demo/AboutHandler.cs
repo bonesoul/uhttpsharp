@@ -25,10 +25,7 @@ namespace uhttpsharpdemo
     {
         public override HttpResponse Handle(HttpRequest httpRequest)
         {
-            return new HttpResponse(HttpResponseCode.Ok,
-                                    string.Format(
-                                        "<html><head><title>uhttpsharp</title></head><body><h1>A sample http-request-handler!</h1><hr><b>{0}</b></body></html>",
-                                        HttpServer.Instance.Banner));
+            return HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Sample http-request-handler");
         }
     }
 }

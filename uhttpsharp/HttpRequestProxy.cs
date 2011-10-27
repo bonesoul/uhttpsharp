@@ -35,20 +35,11 @@ namespace uhttpsharp
 
         private HttpResponse DefaultError()
         {
-            return new HttpResponse(
-                HttpResponseCode.NotFound,
-                string.Format(
-                    "<html><head><title>{0}</title></head><body><h1>Out of the way you nobgoblin! (404)</h1>" +
-                    "<hr><b>{0}</b></body></html>",
-                    HttpServer.Instance.Banner));
+            return HttpResponse.CreateWithMessage(HttpResponseCode.NotFound, "Not Found");
         }
         private HttpResponse DefaultIndex()
         {
-            return new HttpResponse(
-                HttpResponseCode.Ok,
-                string.Format(
-                    "<html><head><title>{0}</title></head><body><h1>Ah, potential customer!</h1><hr><b>{0}</b></body></html>",
-                    HttpServer.Instance.Banner));
+            return HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Welcome to uhttpsharp!");
         }
         public HttpResponse Route(HttpRequest request)
         {

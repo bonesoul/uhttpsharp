@@ -60,6 +60,14 @@ namespace uhttpsharp
             ContentStream = contentStream;
         }
 
+        public static HttpResponse CreateWithMessage(HttpResponseCode code, string message, string body = "")
+        {
+            return new HttpResponse(
+                code,
+                string.Format(
+                    "<html><head><title>{0}</title></head><body><h1>{1}</h1><hr><b>{0}</b>{2}</body></html>",
+                    HttpServer.Instance.Banner, message, body));
+        }
         private static Stream StringToStream(string content)
         {
             var stream = new MemoryStream();
