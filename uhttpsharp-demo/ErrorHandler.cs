@@ -25,7 +25,7 @@ namespace uhttpsharpdemo
     {
         public override HttpResponse Handle(HttpRequest httpRequest)
         {
-            return new HttpResponse(HttpResponse.ResponseCode.NotFound, "These are not the droids you are looking for.");
+            return new HttpResponse(HttpResponseCode.NotFound, "These are not the droids you are looking for.");
         }
     }
 }

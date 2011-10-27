@@ -39,18 +39,18 @@ namespace uhttpsharp
         public string Protocol { get; private set; }
         public string ContentType { get; private set; }
         public bool CloseConnection { get; private set; }
-        public ResponseCode Code { get; private set; }
+        public HttpResponseCode Code { get; private set; }
         private Stream ContentStream { get; set; }
 
-        public HttpResponse(ResponseCode code, string content)
+        public HttpResponse(HttpResponseCode code, string content)
             : this(code, "text/html; charset=utf-8", StringToStream(content))
         {
         }
         public HttpResponse(string contentType, Stream contentStream)
-            : this(ResponseCode.Ok, contentType, contentStream)
+            : this(HttpResponseCode.Ok, contentType, contentStream)
         {
         }
-        private HttpResponse(ResponseCode code, string contentType, Stream contentStream)
+        private HttpResponse(HttpResponseCode code, string contentType, Stream contentStream)
         {
             Protocol = "HTTP/1.1";
             ContentType = contentType;
@@ -83,17 +83,6 @@ namespace uhttpsharp
             ContentStream.Position = 0;
             ContentStream.CopyTo(stream);
             ContentStream.Close();
-        }
-
-        public enum ResponseCode
-        {
-            Ok = 200,
-            Found = 302,
-            SeeOther = 303,
-            BadRequest = 400,
-            NotFound = 404,
-            InternalServerError = 500,
-            ServerBusy = 502,
         }
     }
 }

@@ -25,7 +25,7 @@ namespace uhttpsharpdemo
     {
         public override HttpResponse Handle(HttpRequest httpRequest)
         {
-            return new HttpResponse(HttpResponse.ResponseCode.Ok, "Welcome to the Index. ☺");
+            return new HttpResponse(HttpResponseCode.Ok, "Welcome to the Index. ☺");
         }
     }
 }
