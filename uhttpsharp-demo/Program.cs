@@ -18,7 +18,7 @@
 
 using System;
 using System.Net.Sockets;
-using uhttpsharp.Embedded;
+using uhttpsharp;
 
 namespace uhttpsharpdemo
 {

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2011 uhttpsharp project - http://github.com/raistlinthewiz/uhttpsharp
  *
  * This library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace uhttpsharp.Embedded
+namespace uhttpsharp
 {
     public sealed class HttpClient
     {

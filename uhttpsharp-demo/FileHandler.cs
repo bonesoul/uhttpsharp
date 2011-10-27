@@ -18,7 +18,7 @@
 
 using System.Collections.Generic;
 using System.IO;
-using uhttpsharp.Embedded;
+using uhttpsharp;
 
 namespace uhttpsharpdemo
 {

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2011 uhttpsharp project - http://github.com/raistlinthewiz/uhttpsharp
  *
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
 
 using System;
 
-namespace uhttpsharp.Embedded
+namespace uhttpsharp
 {
     public class HttpRequestHandler
     {

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2011 uhttpsharp project - http://github.com/raistlinthewiz/uhttpsharp
  *
  * This library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace uhttpsharp.Embedded
+namespace uhttpsharp
 {
     internal sealed class HttpRequestProxy
     {
