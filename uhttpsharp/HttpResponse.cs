@@ -72,7 +72,7 @@ namespace uhttpsharp
         {
             var writer = new StreamWriter(stream) {NewLine = "\r\n"};
             writer.WriteLine("{0} {1} {2}", Protocol, (int) Code, _responseTexts[(int) Code]);
-            writer.WriteLine("Date: {0}", DateTime.Now.ToString("R"));
+            writer.WriteLine("Date: {0}", DateTime.UtcNow.ToString("R"));
             writer.WriteLine("Server: {0}", HttpServer.Instance.Banner);
             writer.WriteLine("Connection: {0}", CloseConnection ? "close" : "Keep-Alive");
             writer.WriteLine("Content-Type: {0}", ContentType);
