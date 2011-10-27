@@ -22,13 +22,13 @@ using System.Reflection;
 
 namespace uhttpsharp
 {
-    internal sealed class HttpRequestProxy
+    internal sealed class HttpRouter
     {
-        public static readonly HttpRequestProxy Instance = new HttpRequestProxy();
+        public static readonly HttpRouter Instance = new HttpRouter();
 
         private readonly Dictionary<string, HttpRequestHandler> _handlers = new Dictionary<string, HttpRequestHandler>();
 
-        private HttpRequestProxy()
+        private HttpRouter()
         {
             RegisterHandlers();
         }

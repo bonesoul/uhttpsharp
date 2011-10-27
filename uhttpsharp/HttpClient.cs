@@ -59,7 +59,7 @@ namespace uhttpsharp
                 var request = new HttpRequest(_inputStream);
                 if (request.Valid)
                 {
-                    var response = HttpRequestProxy.Instance.Route(request);
+                    var response = HttpRouter.Instance.Route(request);
                     if (response != null)
                     {
                         response.WriteResponse(_outputStream);

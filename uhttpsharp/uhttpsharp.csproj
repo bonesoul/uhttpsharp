@@ -46,7 +46,7 @@
     <Compile Include="HttpClient.cs" />
     <Compile Include="HttpRequest.cs" />
     <Compile Include="HttpRequestHandler.cs" />
-    <Compile Include="HttpRequestProxy.cs" />
+    <Compile Include="HttpRouter.cs" />
     <Compile Include="HttpResponse.cs" />
     <Compile Include="HttpServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
