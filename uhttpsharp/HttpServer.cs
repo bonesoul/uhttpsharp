@@ -46,6 +46,8 @@ namespace uhttpsharp
 
         public void StartUp()
         {
+            if (_isActive)
+                return;
             _listener = new TcpListener(IPAddress.Loopback, Port);
             _listener.Start();
             var serverThread = new Thread(Listen) {IsBackground = true};
