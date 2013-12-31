@@ -19,11 +19,11 @@
 using System.Threading.Tasks;
 using uhttpsharp;
 
-namespace uhttpsharpdemo
+namespace uhttpsharpdemo.Handlers
 {
     public class ErrorHandler : IHttpRequestHandler
     {
-        public async Task<HttpResponse> Handle(HttpRequest httpRequest, System.Func<System.Threading.Tasks.Task<HttpResponse>> next)
+        public async Task<HttpResponse> Handle(IHttpRequest httpRequest, System.Func<System.Threading.Tasks.Task<HttpResponse>> next)
         {
             return new HttpResponse(HttpResponseCode.NotFound, "These are not the droids you are looking for.");
         }

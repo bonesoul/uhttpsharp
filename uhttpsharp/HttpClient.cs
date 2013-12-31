@@ -16,38 +16,73 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System.Net;
+using System.Reflection;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace uhttpsharp
 {
-    public sealed class HttpClient
+    internal sealed class HttpClient
     {
+        private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly TcpClient _client;
-        private readonly Stream _inputStream;
+        private readonly StreamReader _inputStream;
         private readonly Stream _outputStream;
         private readonly IList<IHttpRequestHandler> _requestHandlers;
+        private readonly IHttpRequestProvider _requestProvider;
+        private readonly EndPoint _remoteEndPoint;
 
-        public HttpClient(TcpClient client, IList<IHttpRequestHandler> requestHandlers)
+        public HttpClient(TcpClient client, IList<IHttpRequestHandler> requestHandlers, IHttpRequestProvider requestProvider)
         {
+            _remoteEndPoint = client.Client.RemoteEndPoint;
             _client = client;
             _requestHandlers = requestHandlers;
+            _requestProvider = requestProvider;
             _outputStream = _client.GetStream();
-            _inputStream = new BufferedStream(_client.GetStream());
+            _inputStream = new StreamReader(new BufferedStream(_client.GetStream()));
+
+            Logger.InfoFormat("Got Client {0}", _remoteEndPoint);
 
             Task.Factory.StartNew(Process);
         }
 
-        private void Process()
+        private async void Process()
         {
             try
             {
-                ProcessInternal();
+                while (_client.Connected)
+                {
+                    var request = await _requestProvider.Provide(_inputStream);
+
+                    if (request != null)
+                    {
+
+                        Logger.InfoFormat("{1} : Got request {0}", request.Uri, _client.Client.RemoteEndPoint);
+
+                        var getResponse = BuildHandlers(request)();
+
+                        var response = await getResponse;
+
+                        if (response != null)
+                        {
+                            await response.WriteResponse(_outputStream);
+                            if (response.CloseConnection)
+                            {
+                                _client.Close();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _client.Close();
+                    }
+                }
             }
             catch (SocketException)
             {
@@ -56,10 +91,12 @@ namespace uhttpsharp
             {
                 // Socket exceptions on read will be re-thrown as IOException by BufferedStream
             }
+
+            Logger.InfoFormat("Lost Client {0}", _remoteEndPoint);
         }
 
 
-        private Func<Task<HttpResponse>> BuildHandlers(HttpRequest request, int index = 0)
+        private Func<Task<HttpResponse>> BuildHandlers(IHttpRequest request, int index = 0)
         {
             if (index > _requestHandlers.Count)
             {
@@ -67,33 +104,6 @@ namespace uhttpsharp
             }
 
             return () => _requestHandlers[index].Handle(request, BuildHandlers(request, index + 1));
-        }
-
-        private async void ProcessInternal()
-        {
-            while (_client.Connected)
-            {
-                var request = await HttpRequest.Build(_inputStream);
-                if (request.Valid)
-                {
-                    var getResponse = BuildHandlers(request)();
-
-                    var response = await getResponse;
-
-                    if (response != null)
-                    {
-                        await response.WriteResponse(_outputStream);
-                        if (response.CloseConnection)
-                        {
-                            _client.Close();
-                        }
-                    }
-                }
-                else
-                {
-                    _client.Close();
-                }
-            }
         }
     }
 }

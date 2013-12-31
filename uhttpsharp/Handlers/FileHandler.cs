@@ -19,9 +19,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using uhttpsharp;
 
-namespace uhttpsharpdemo
+namespace uhttpsharp.Handlers
 {
     public class FileHandler : IHttpRequestHandler
     {
@@ -47,12 +46,12 @@ namespace uhttpsharpdemo
 
         private string GetContentType(string path)
         {
-            var extension = Path.GetExtension(path) ?? "";
+            var extension = Path.GetExtension(path) ?? string.Empty;
             if (MimeTypes.ContainsKey(extension))
                 return MimeTypes[extension];
             return DefaultMimeType;
         }
-        public async Task<HttpResponse> Handle(HttpRequest httpRequest, System.Func<Task<HttpResponse>> next)
+        public async Task<HttpResponse> Handle(IHttpRequest httpRequest, System.Func<Task<HttpResponse>> next)
         {
             var requestPath = httpRequest.Uri.OriginalString.TrimStart('/');
             

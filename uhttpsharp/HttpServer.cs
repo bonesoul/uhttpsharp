@@ -16,6 +16,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using log4net;
+using log4net.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,6 +31,8 @@ namespace uhttpsharp
 {
     public sealed class HttpServer : IDisposable
     {
+        private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly int _port;
         
         private TcpListener _listener;
@@ -36,14 +40,13 @@ namespace uhttpsharp
 
         private readonly IList<IHttpRequestHandler> _handlers = new List<IHttpRequestHandler>();
 
-        public string Address
-        {
-            get { return string.Format("{0}:{1}", IPAddress.Loopback, _port); }
-        }
+        private readonly IHttpRequestProvider _requestProvider;
 
-        public HttpServer(int port)
+
+        public HttpServer(int port, IHttpRequestProvider requestProvider)
         {
             _port = port;
+            _requestProvider = requestProvider;
         }
 
         public void Use(IHttpRequestHandler handler)
@@ -63,13 +66,14 @@ namespace uhttpsharp
 
         private async void Listen()
         {
-            
-            Console.WriteLine(string.Format("Embedded httpserver started.. [{0}:{1}]", IPAddress.Loopback, _port));
+            Logger.InfoFormat("Embedded uhttpserver started @ {0}:{1}", IPAddress.Loopback, _port);
 
             while (_isActive)
             {
-                new HttpClient(await _listener.AcceptTcpClientAsync(), _handlers);
+                new HttpClient(await _listener.AcceptTcpClientAsync(), _handlers, _requestProvider);
             }
+
+            Logger.InfoFormat("Embedded uhttpserver stopped @ {0}:{1}", IPAddress.Loopback, _port);
         }
 
         public void Dispose()

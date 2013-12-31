@@ -18,14 +18,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 
-namespace uhttpsharp
+namespace uhttpsharp.Handlers
 {
     public class HttpRouter : IHttpRequestHandler
     {
-        private readonly IDictionary<string, IHttpRequestHandler> _handlers = new Dictionary<string, IHttpRequestHandler>();
+        private readonly IDictionary<string, IHttpRequestHandler> _handlers = new Dictionary<string, IHttpRequestHandler>(StringComparer.InvariantCultureIgnoreCase);
 
         public HttpRouter With(string function, IHttpRequestHandler handler)
         {
@@ -34,15 +33,21 @@ namespace uhttpsharp
             return this;
         }
 
-        public Task<HttpResponse> Handle(HttpRequest request, Func<Task<HttpResponse>> nextHandler)
+        public Task<HttpResponse> Handle(IHttpRequest request, Func<Task<HttpResponse>> nextHandler)
         {
-            var function = request.Parameters.Function;
+            string function = string.Empty;
+
+            if (request.RequestParameters.Length > 0)
+            {
+                function = request.RequestParameters[0];
+            }
 
             IHttpRequestHandler value;
             if (_handlers.TryGetValue(function, out value))
             {
                 return value.Handle(request, nextHandler);
             }
+            
 
             // Route not found, Call next.
             return nextHandler();

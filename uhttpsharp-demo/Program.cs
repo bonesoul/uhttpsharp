@@ -17,11 +17,10 @@
  */
 
 using System;
-using System.Diagnostics;
-using System.IO.Ports;
-using System.Net;
 using System.Net.Sockets;
 using uhttpsharp;
+using uhttpsharp.Handlers;
+using uhttpsharpdemo.Handlers;
 
 namespace uhttpsharpdemo
 {
@@ -29,39 +28,30 @@ namespace uhttpsharpdemo
     {
         private static void Main()
         {
-            for (var port = 8000; port <= 65535; ++port)
+            log4net.Config.XmlConfigurator.Configure();
+
+            for (var port = 8000; port <= 65535; port++)
             {
-                var httpServer = new HttpServer(port);
-
-                httpServer.Use(new TimingHandler());
-                httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
-                                               .With("about", new AboutHandler()));
-                httpServer.Use(new FileHandler());
-                httpServer.Use(new ErrorHandler());
-
-                try
+                using (var httpServer = new HttpServer(port, new HttpRequestProvider()))
                 {
-                    httpServer.Start();
+                    httpServer.Use(new TimingHandler());
+                    httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
+                                                   .With("about", new AboutHandler()));
+                    httpServer.Use(new FileHandler());
+                    httpServer.Use(new ErrorHandler());
+
+                    try
+                    {
+                        httpServer.Start();
+                        Console.ReadLine();
+                    }
+                    catch (SocketException)
+                    {
+                        continue;
+                    }
                 }
-                catch (SocketException)
-                {
-                    continue;
-                }
-                break;
+                return;
             }
-            Console.ReadLine();
-        }
-    }
-
-    public class TimingHandler : IHttpRequestHandler
-    {
-
-        public async System.Threading.Tasks.Task<HttpResponse> Handle(HttpRequest httpRequest, Func<System.Threading.Tasks.Task<HttpResponse>> next)
-        {
-            var stopWatch = Stopwatch.StartNew();
-            var retVal = await next();
-            Console.WriteLine(stopWatch.Elapsed);
-            return retVal;
         }
     }
 }
