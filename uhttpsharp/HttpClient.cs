@@ -16,9 +16,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace uhttpsharp
 {
@@ -27,17 +31,16 @@ namespace uhttpsharp
         private readonly TcpClient _client;
         private readonly Stream _inputStream;
         private readonly Stream _outputStream;
-        private readonly HttpRouter _router;
+        private readonly IList<IHttpRequestHandler> _requestHandlers;
 
-        public HttpClient(TcpClient client)
+        public HttpClient(TcpClient client, IList<IHttpRequestHandler> requestHandlers)
         {
             _client = client;
-            _inputStream = new BufferedStream(_client.GetStream());
+            _requestHandlers = requestHandlers;
             _outputStream = _client.GetStream();
-            _router = new HttpRouter();
+            _inputStream = new BufferedStream(_client.GetStream());
 
-            var clientThread = new Thread(Process) {IsBackground = true};
-            clientThread.Start();
+            Task.Factory.StartNew(Process);
         }
 
         private void Process()
@@ -54,22 +57,42 @@ namespace uhttpsharp
                 // Socket exceptions on read will be re-thrown as IOException by BufferedStream
             }
         }
-        private void ProcessInternal()
+
+
+        private Func<Task<HttpResponse>> BuildHandlers(HttpRequest request, int index = 0)
+        {
+            if (index > _requestHandlers.Count)
+            {
+                return null;
+            }
+
+            return () => _requestHandlers[index].Handle(request, BuildHandlers(request, index + 1));
+        }
+
+        private async void ProcessInternal()
         {
             while (_client.Connected)
             {
-                var request = new HttpRequest(_inputStream);
+                var request = await HttpRequest.Build(_inputStream);
                 if (request.Valid)
                 {
-                    var response = _router.Route(request);
+                    var getResponse = BuildHandlers(request)();
+
+                    var response = await getResponse;
+
                     if (response != null)
                     {
-                        response.WriteResponse(_outputStream);
-                        if (response.CloseConnection) _client.Close();
+                        await response.WriteResponse(_outputStream);
+                        if (response.CloseConnection)
+                        {
+                            _client.Close();
+                        }
                     }
                 }
                 else
+                {
                     _client.Close();
+                }
             }
         }
     }

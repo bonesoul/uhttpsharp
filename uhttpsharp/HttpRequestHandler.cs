@@ -17,25 +17,12 @@
  */
 
 using System;
+using System.Threading.Tasks;
 
 namespace uhttpsharp
 {
-    public class HttpRequestHandler
+    public interface IHttpRequestHandler
     {
-        public virtual HttpResponse Handle(HttpRequest httpRequest)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Class)]
-    public class HttpRequestHandlerAttributes : Attribute
-    {
-        public string Function { get; private set; }
-
-        public HttpRequestHandlerAttributes(string functionName)
-        {
-            Function = functionName;
-        }
+        Task<HttpResponse> Handle(HttpRequest httpRequest, Func<Task<HttpResponse>> next);
     }
 }

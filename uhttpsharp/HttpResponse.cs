@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace uhttpsharp
 {
@@ -65,8 +66,8 @@ namespace uhttpsharp
             return new HttpResponse(
                 code,
                 string.Format(
-                    "<html><head><title>{0}</title></head><body><h1>{1}</h1><hr><b>{0}</b>{2}</body></html>",
-                    HttpServer.Instance.Banner, message, body));
+                    "<html><head><title>{0}</title></head><body><h1>{0}</h1><hr>{1}</body></html>",
+                    message, body));
         }
         private static Stream StringToStream(string content)
         {
@@ -76,20 +77,21 @@ namespace uhttpsharp
             writer.Flush();
             return stream;
         }
-        public void WriteResponse(Stream stream)
+        public async Task WriteResponse(Stream stream)
         {
             var writer = new StreamWriter(stream) {NewLine = "\r\n"};
-            writer.WriteLine("{0} {1} {2}", Protocol, (int) Code, _responseTexts[(int) Code]);
-            writer.WriteLine("Date: {0}", DateTime.UtcNow.ToString("R"));
-            writer.WriteLine("Server: {0}", HttpServer.Instance.Banner);
-            writer.WriteLine("Connection: {0}", CloseConnection ? "close" : "Keep-Alive");
-            writer.WriteLine("Content-Type: {0}", ContentType);
-            writer.WriteLine("Content-Length: {0}", ContentStream.Length);
-            writer.WriteLine();
-            writer.Flush();
+            
+            await writer.WriteLineAsync(string.Format("{0} {1} {2}", Protocol, (int) Code, _responseTexts[(int) Code]));
+            await writer.WriteLineAsync(string.Format("Date: {0}", DateTime.UtcNow.ToString("R")));
+            // await writer.WriteLineAsync(string.Format("Server: {0}", HttpServer.Instance.Banner));
+            await writer.WriteLineAsync(string.Format("Connection: {0}", CloseConnection ? "close" : "Keep-Alive"));
+            await writer.WriteLineAsync(string.Format("Content-Type: {0}", ContentType));
+            await writer.WriteLineAsync(string.Format("Content-Length: {0}", ContentStream.Length));
+            await writer.WriteLineAsync();
+            await writer.FlushAsync();
 
             ContentStream.Position = 0;
-            ContentStream.CopyTo(stream);
+            await ContentStream.CopyToAsync(stream);
             ContentStream.Close();
         }
     }

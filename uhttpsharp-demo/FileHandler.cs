@@ -18,12 +18,12 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using uhttpsharp;
 
 namespace uhttpsharpdemo
 {
-    [HttpRequestHandlerAttributes("*")]
-    public class FileHandler : HttpRequestHandler
+    public class FileHandler : IHttpRequestHandler
     {
         public static string DefaultMimeType { get; set; }
         public static string HttpRootDirectory { get; set; }
@@ -52,13 +52,16 @@ namespace uhttpsharpdemo
                 return MimeTypes[extension];
             return DefaultMimeType;
         }
-        public override HttpResponse Handle(HttpRequest httpRequest)
+        public async Task<HttpResponse> Handle(HttpRequest httpRequest, System.Func<Task<HttpResponse>> next)
         {
+            var requestPath = httpRequest.Uri.OriginalString.TrimStart('/');
+            
             var httpRoot = Path.GetFullPath(HttpRootDirectory ?? ".");
-            var requestPath = httpRequest.Uri.AbsolutePath.TrimStart('/');
             var path = Path.GetFullPath(Path.Combine(httpRoot, requestPath));
+            
             if (!File.Exists(path))
-                return null;
+                return await next();
+
             return new HttpResponse(GetContentType(path), File.OpenRead(path));
         }
     }

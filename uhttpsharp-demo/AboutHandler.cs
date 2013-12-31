@@ -16,14 +16,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System.Threading.Tasks;
 using uhttpsharp;
 
 namespace uhttpsharpdemo
 {
-    [HttpRequestHandlerAttributes("about")]
-    public class AboutHandler : HttpRequestHandler
+    public class AboutHandler : IHttpRequestHandler
     {
-        public override HttpResponse Handle(HttpRequest httpRequest)
+
+        public async Task<HttpResponse> Handle(HttpRequest httpRequest, System.Func<Task<HttpResponse>> next)
         {
             return HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Sample http-request-handler");
         }

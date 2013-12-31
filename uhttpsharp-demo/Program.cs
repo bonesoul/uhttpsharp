@@ -17,6 +17,9 @@
  */
 
 using System;
+using System.Diagnostics;
+using System.IO.Ports;
+using System.Net;
 using System.Net.Sockets;
 using uhttpsharp;
 
@@ -28,10 +31,17 @@ namespace uhttpsharpdemo
         {
             for (var port = 8000; port <= 65535; ++port)
             {
-                HttpServer.Instance.Port = port;
+                var httpServer = new HttpServer(port);
+
+                httpServer.Use(new TimingHandler());
+                httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
+                                               .With("about", new AboutHandler()));
+                httpServer.Use(new FileHandler());
+                httpServer.Use(new ErrorHandler());
+
                 try
                 {
-                    HttpServer.Instance.StartUp();
+                    httpServer.Start();
                 }
                 catch (SocketException)
                 {
@@ -40,6 +50,18 @@ namespace uhttpsharpdemo
                 break;
             }
             Console.ReadLine();
+        }
+    }
+
+    public class TimingHandler : IHttpRequestHandler
+    {
+
+        public async System.Threading.Tasks.Task<HttpResponse> Handle(HttpRequest httpRequest, Func<System.Threading.Tasks.Task<HttpResponse>> next)
+        {
+            var stopWatch = Stopwatch.StartNew();
+            var retVal = await next();
+            Console.WriteLine(stopWatch.Elapsed);
+            return retVal;
         }
     }
 }

@@ -17,53 +17,64 @@
  */
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace uhttpsharp
 {
-    public sealed class HttpServer
+    public sealed class HttpServer : IDisposable
     {
-        public static readonly HttpServer Instance = new HttpServer();
-
-        public int Port = 80;
-        public string Banner = string.Empty;
-
+        private readonly int _port;
+        
         private TcpListener _listener;
         private bool _isActive;
 
+        private readonly IList<IHttpRequestHandler> _handlers = new List<IHttpRequestHandler>();
+
         public string Address
         {
-            get { return string.Format("{0}:{1}", IPAddress.Loopback, Port); }
+            get { return string.Format("{0}:{1}", IPAddress.Loopback, _port); }
         }
 
-        private HttpServer()
+        public HttpServer(int port)
         {
-            Banner = string.Format("uhttpsharp {0}", Assembly.GetExecutingAssembly().GetName().Version);
+            _port = port;
         }
 
-        public void StartUp()
+        public void Use(IHttpRequestHandler handler)
         {
-            if (_isActive)
-                return;
-            _listener = new TcpListener(IPAddress.Loopback, Port);
+            _handlers.Add(handler);
+        }
+
+        public void Start()
+        {
+            _listener = new TcpListener(IPAddress.Loopback, _port);
             _listener.Start();
-            var serverThread = new Thread(Listen) {IsBackground = true};
-            serverThread.Start();
-        }
 
-        private void Listen()
-        {
             _isActive = true;
 
-            Console.WriteLine(string.Format("Embedded httpserver started.. [{0}:{1}]", IPAddress.Loopback, Port));
+            Task.Factory.StartNew(Listen);
+        }
+
+        private async void Listen()
+        {
+            
+            Console.WriteLine(string.Format("Embedded httpserver started.. [{0}:{1}]", IPAddress.Loopback, _port));
 
             while (_isActive)
             {
-                new HttpClient(_listener.AcceptTcpClient());
+                new HttpClient(await _listener.AcceptTcpClientAsync(), _handlers);
             }
+        }
+
+        public void Dispose()
+        {
+            _isActive = false;
         }
     }
 }

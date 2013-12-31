@@ -19,64 +19,33 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace uhttpsharp
 {
-    internal sealed class HttpRouter
+    public class HttpRouter : IHttpRequestHandler
     {
-        private readonly Dictionary<string, HttpRequestHandler> _handlers = new Dictionary<string, HttpRequestHandler>();
+        private readonly IDictionary<string, IHttpRequestHandler> _handlers = new Dictionary<string, IHttpRequestHandler>();
 
-        public HttpRouter()
+        public HttpRouter With(string function, IHttpRequestHandler handler)
         {
-            RegisterHandlers();
+            _handlers.Add(function, handler);
+
+            return this;
         }
 
-        private HttpResponse DefaultError()
-        {
-            return HttpResponse.CreateWithMessage(HttpResponseCode.NotFound, "Not Found");
-        }
-        private HttpResponse DefaultIndex()
-        {
-            return HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Welcome to uhttpsharp!");
-        }
-        public HttpResponse Route(HttpRequest request)
+        public Task<HttpResponse> Handle(HttpRequest request, Func<Task<HttpResponse>> nextHandler)
         {
             var function = request.Parameters.Function;
-            return
-                RouteToFunction(request, function) ??
-                RouteToFunction(request, "*") ??
-                (string.IsNullOrEmpty(function) ? (RouteToFunction(request, "") ?? DefaultIndex()) : null) ??
-                RouteToFunction(request, "404") ??
-                DefaultError();
-        }
-        private HttpResponse RouteToFunction(HttpRequest request, string function)
-        {
-            HttpRequestHandler handler;
-            if (_handlers.TryGetValue(function, out handler))
-                return handler.Handle(request);
-            return null;
-        }
-        private void RegisterHandlers()
-        {
-            foreach (var t in Assembly.GetEntryAssembly().GetTypes())
+
+            IHttpRequestHandler value;
+            if (_handlers.TryGetValue(function, out value))
             {
-                if (t.IsSubclassOf(typeof(HttpRequestHandler)))
-                {
-                    try
-                    {
-                        var attributes = t.GetCustomAttributes(typeof(HttpRequestHandlerAttributes), true);
-                        if (attributes.Length > 0)
-                        {
-                            var handler = (HttpRequestHandler)Activator.CreateInstance(t);
-                            _handlers.Add(((HttpRequestHandlerAttributes)attributes[0]).Function, handler);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(string.Format("Exception during activating the IHttpRequestHandler: {0} - {1}", t, e));
-                    }
-                }
+                return value.Handle(request, nextHandler);
             }
+
+            // Route not found, Call next.
+            return nextHandler();
         }
     }
 }

@@ -19,11 +19,20 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace uhttpsharp
 {
     public sealed class HttpRequest
     {
+        public static async Task<HttpRequest> Build(Stream stream)
+        {
+            var retVal = new HttpRequest(stream);
+            await retVal.Process();
+
+            return retVal;
+        }
+
         public bool Valid { get; private set; }
         public Dictionary<string, string> Headers { get; private set; }
         public HttpMethod HttpMethod { get; private set; }
@@ -33,20 +42,21 @@ namespace uhttpsharp
         public HttpRequestParameters Parameters { get; private set; }
 
         private readonly Stream _stream;
+        private readonly StreamReader _streamReader;
 
         public HttpRequest(Stream stream)
         {
             Headers = new Dictionary<string, string>();
             _stream = stream;
-            Process();
+            _streamReader = new StreamReader(_stream);
         }
 
-        private void Process()
+        private async Task Process()
         {
             Valid = false;
 
             // parse the http request
-            var request = ReadLine();
+            var request = await _streamReader.ReadLineAsync();
             if (request == null)
                 return;
             var tokens = request.Split(' ');
@@ -69,16 +79,17 @@ namespace uhttpsharp
 
             HttpProtocol = tokens[2];
             URL = tokens[1];
-            Uri = new Uri("http://" + HttpServer.Instance.Address + "/" + URL.TrimStart('/'));
+            Uri = new Uri(URL, UriKind.Relative);
+             
             Parameters = new HttpRequestParameters(URL);
 
-            Console.WriteLine(string.Format("[{0}:{1}] URL: {2}", HttpProtocol, HttpMethod, URL));
+            Console.WriteLine("[{0}:{1}] URL: {2}", HttpProtocol, HttpMethod, URL);
 
             // get the headers
             string line;
-            while ((line = ReadLine()) != null)
+            while ((line = await _streamReader.ReadLineAsync()) != null)
             {
-                if (line.Equals("")) break;
+                if (line.Equals(string.Empty)) break;
                 var keys = line.Split(':');
                 Headers.Add(keys[0], keys[1]);
             }
@@ -86,26 +97,12 @@ namespace uhttpsharp
             Valid = true;
         }
 
-        private string ReadLine()
+        private KeyValuePair<string, string> SplitHeader(string header)
         {
-            var buffer = string.Empty;
-
-            while (true)
-            {
-                var _char = _stream.ReadByte();
-                if (_char == '\n') break;
-                if (_char == '\r') continue;
-                if (_char == -1)
-                {
-                    if (buffer != string.Empty)
-                        return buffer;
-                    return null;
-                }
-                buffer += Convert.ToChar(_char);
-            }
-
-            return buffer;
+            var index = header.IndexOf(':');
+            return new KeyValuePair<string, string>(header.Substring(0, index), header.Substring(index + 1));
         }
+
     }
 
     public enum HttpMethod

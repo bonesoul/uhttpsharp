@@ -20,10 +20,10 @@ using uhttpsharp;
 
 namespace uhttpsharpdemo
 {
-    [HttpRequestHandlerAttributes("")]
-    public class IndexHandler : HttpRequestHandler
+    public class IndexHandler : IHttpRequestHandler
     {
-        public override HttpResponse Handle(HttpRequest httpRequest)
+
+        public async System.Threading.Tasks.Task<HttpResponse> Handle(HttpRequest httpRequest, System.Func<System.Threading.Tasks.Task<HttpResponse>> next)
         {
             return new HttpResponse(HttpResponseCode.Ok, "Welcome to the Index. ☺");
         }
