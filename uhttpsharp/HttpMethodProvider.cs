@@ -6,7 +6,7 @@ namespace uhttpsharp
     {
         public static readonly IHttpMethodProvider Default = new HttpMethodProviderCache(new HttpMethodProvider());
 
-        private HttpMethodProvider()
+        internal HttpMethodProvider()
         {
             
         }
