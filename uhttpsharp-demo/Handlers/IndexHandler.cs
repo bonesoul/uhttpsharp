@@ -16,7 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System;
 using System.Text;
+using System.Threading.Tasks;
 using uhttpsharp;
 
 namespace uhttpsharpdemo.Handlers
@@ -30,9 +32,9 @@ namespace uhttpsharpdemo.Handlers
             _contents = Encoding.UTF8.GetBytes("Welcome to the Index. ☺");
         }
 
-        public async System.Threading.Tasks.Task<HttpResponse> Handle(IHttpRequest httpRequest, System.Func<System.Threading.Tasks.Task<HttpResponse>> next)
+        public Task<HttpResponse> Handle(IHttpRequest httpRequest, Func<Task<HttpResponse>> next)
         {
-            return new HttpResponse(HttpResponseCode.Ok, _contents);
+            return Task.FromResult(new HttpResponse(HttpResponseCode.Ok, _contents));
         }
     }
 }

@@ -24,9 +24,9 @@ namespace uhttpsharpdemo.Handlers
     public class AboutHandler : IHttpRequestHandler
     {
 
-        public async Task<HttpResponse> Handle(IHttpRequest httpRequest, System.Func<Task<HttpResponse>> next)
+        public Task<HttpResponse> Handle(IHttpRequest httpRequest, System.Func<Task<HttpResponse>> next)
         {
-            return HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Sample http-request-handler");
+            return Task.FromResult(HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Sample http-request-handler"));
         }
     }
 }
