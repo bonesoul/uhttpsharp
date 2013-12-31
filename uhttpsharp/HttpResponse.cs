@@ -25,7 +25,7 @@ namespace uhttpsharp
 {
     public sealed class HttpResponse
     {
-        private readonly Dictionary<int, string> _responseTexts =
+        private static readonly Dictionary<int, string> ResponseTexts =
             new Dictionary<int, string>
                 {
                     {200, "OK"},
@@ -81,9 +81,8 @@ namespace uhttpsharp
         {
             var writer = new StreamWriter(stream) {NewLine = "\r\n"};
             
-            await writer.WriteLineAsync(string.Format("{0} {1} {2}", Protocol, (int) Code, _responseTexts[(int) Code]));
+            await writer.WriteLineAsync(string.Format("{0} {1} {2}", Protocol, (int) Code, ResponseTexts[(int) Code]));
             await writer.WriteLineAsync(string.Format("Date: {0}", DateTime.UtcNow.ToString("R")));
-            // await writer.WriteLineAsync(string.Format("Server: {0}", HttpServer.Instance.Banner));
             await writer.WriteLineAsync(string.Format("Connection: {0}", CloseConnection ? "close" : "Keep-Alive"));
             await writer.WriteLineAsync(string.Format("Content-Type: {0}", ContentType));
             await writer.WriteLineAsync(string.Format("Content-Length: {0}", ContentStream.Length));

@@ -30,28 +30,19 @@ namespace uhttpsharpdemo
         {
             log4net.Config.XmlConfigurator.Configure();
 
-            for (var port = 8000; port <= 65535; port++)
+            using (var httpServer = new HttpServer(800, new HttpRequestProvider()))
             {
-                using (var httpServer = new HttpServer(port, new HttpRequestProvider()))
-                {
-                    httpServer.Use(new TimingHandler());
-                    httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
-                                                   .With("about", new AboutHandler()));
-                    httpServer.Use(new FileHandler());
-                    httpServer.Use(new ErrorHandler());
+                httpServer.Use(new TimingHandler());
+                httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
+                                                .With("about", new AboutHandler()));
+                httpServer.Use(new FileHandler());
+                httpServer.Use(new ErrorHandler());
 
-                    try
-                    {
-                        httpServer.Start();
-                        Console.ReadLine();
-                    }
-                    catch (SocketException)
-                    {
-                        continue;
-                    }
-                }
-                return;
+
+                httpServer.Start();
+                Console.ReadLine();
             }
+                
         }
     }
 }
