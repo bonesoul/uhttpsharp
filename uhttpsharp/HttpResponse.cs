@@ -92,6 +92,8 @@ namespace uhttpsharp
             ContentStream.Position = 0;
             await ContentStream.CopyToAsync(stream);
             ContentStream.Close();
+
+            await writer.FlushAsync();
         }
     }
 }
