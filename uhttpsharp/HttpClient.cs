@@ -33,7 +33,7 @@ namespace uhttpsharp
 
         private readonly TcpClient _client;
         private readonly StreamReader _inputStream;
-        private readonly Stream _outputStream;
+        private readonly StreamWriter _outputStream;
         private readonly IList<IHttpRequestHandler> _requestHandlers;
         private readonly IHttpRequestProvider _requestProvider;
         private readonly EndPoint _remoteEndPoint;
@@ -44,7 +44,7 @@ namespace uhttpsharp
             _client = client;
             _requestHandlers = requestHandlers;
             _requestProvider = requestProvider;
-            _outputStream = _client.GetStream();
+            _outputStream = new StreamWriter(new BufferedStream(client.GetStream())) {NewLine = "\r\n"};
             _inputStream = new StreamReader(new BufferedStream(_client.GetStream()));
 
             Logger.InfoFormat("Got Client {0}", _remoteEndPoint);

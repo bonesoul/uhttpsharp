@@ -139,7 +139,6 @@ namespace uhttpsharp
 
             if (tokens.Length != 3)
             {
-                Console.WriteLine("httpserver: invalid http request.");
                 return null;
             }
 
@@ -148,6 +147,7 @@ namespace uhttpsharp
             var uri = new Uri(tokens[1], UriKind.Relative);
              
             var headers = new Dictionary<string, string>();
+
             // get the headers
             string line;
             while ((line = await streamReader.ReadLineAsync()) != null)

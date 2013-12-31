@@ -55,10 +55,14 @@ namespace uhttpsharp
         {
             Protocol = "HTTP/1.1";
             ContentType = contentType;
-            CloseConnection = false;
+            CloseConnection = true;
 
             Code = code;
             ContentStream = contentStream;
+        }
+        public HttpResponse(HttpResponseCode code, byte[] contentStream) 
+            : this (code, "text/html; charset=utf-8", new MemoryStream(contentStream))
+        {
         }
 
         public static HttpResponse CreateWithMessage(HttpResponseCode code, string message, string body = "")
@@ -77,20 +81,17 @@ namespace uhttpsharp
             writer.Flush();
             return stream;
         }
-        public async Task WriteResponse(Stream stream)
+        public async Task WriteResponse(StreamWriter writer)
         {
-            var writer = new StreamWriter(stream) {NewLine = "\r\n"};
-            
             await writer.WriteLineAsync(string.Format("{0} {1} {2}", Protocol, (int) Code, ResponseTexts[(int) Code]));
             await writer.WriteLineAsync(string.Format("Date: {0}", DateTime.UtcNow.ToString("R")));
             await writer.WriteLineAsync(string.Format("Connection: {0}", CloseConnection ? "close" : "Keep-Alive"));
             await writer.WriteLineAsync(string.Format("Content-Type: {0}", ContentType));
             await writer.WriteLineAsync(string.Format("Content-Length: {0}", ContentStream.Length));
             await writer.WriteLineAsync();
-            await writer.FlushAsync();
-
+            
             ContentStream.Position = 0;
-            await ContentStream.CopyToAsync(stream);
+            await ContentStream.CopyToAsync(writer.BaseStream);
             ContentStream.Close();
 
             await writer.FlushAsync();
