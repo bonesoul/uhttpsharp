@@ -17,7 +17,6 @@
  */
 
 using System;
-using System.Net.Sockets;
 using uhttpsharp;
 using uhttpsharp.Handlers;
 using uhttpsharpdemo.Handlers;
@@ -30,11 +29,13 @@ namespace uhttpsharpdemo
         {
             log4net.Config.XmlConfigurator.Configure();
 
-            using (var httpServer = new HttpServer(800, new HttpRequestProvider()))
+            using (var httpServer = new HttpServer(8000, new HttpRequestProvider()))
             {
                 httpServer.Use(new TimingHandler());
+                
                 httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
-                                                .With("about", new AboutHandler()));
+                                               .With("about", new AboutHandler()));
+
                 httpServer.Use(new FileHandler());
                 httpServer.Use(new ErrorHandler());
 
