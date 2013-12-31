@@ -34,7 +34,8 @@ namespace uhttpsharpdemo
                 httpServer.Use(new TimingHandler());
                 
                 httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
-                                               .With("about", new AboutHandler()));
+                                               .With("about", new AboutHandler())
+                                               .With("strings", new RestHandler(new JsonRestControllerAdapter<string>(new SomeRestControllerOfT()))));
 
                 httpServer.Use(new FileHandler());
                 httpServer.Use(new ErrorHandler());

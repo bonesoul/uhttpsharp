@@ -19,10 +19,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace uhttpsharp
 {
+
     public sealed class HttpResponse
     {
         private static readonly Dictionary<int, string> ResponseTexts =
@@ -43,15 +45,22 @@ namespace uhttpsharp
         public HttpResponseCode Code { get; private set; }
         private Stream ContentStream { get; set; }
 
+        public HttpResponse(HttpResponseCode code, Stream content)
+            : this(code, "text/html; charset=utf-8", content)
+        {
+        }
+
         public HttpResponse(HttpResponseCode code, string content)
             : this(code, "text/html; charset=utf-8", StringToStream(content))
         {
         }
+
         public HttpResponse(string contentType, Stream contentStream)
             : this(HttpResponseCode.Ok, contentType, contentStream)
         {
         }
-        private HttpResponse(HttpResponseCode code, string contentType, Stream contentStream)
+
+        public HttpResponse(HttpResponseCode code, string contentType, Stream contentStream)
         {
             Protocol = "HTTP/1.1";
             ContentType = contentType;
@@ -73,7 +82,7 @@ namespace uhttpsharp
                     "<html><head><title>{0}</title></head><body><h1>{0}</h1><hr>{1}</body></html>",
                     message, body));
         }
-        private static Stream StringToStream(string content)
+        private static MemoryStream StringToStream(string content)
         {
             var stream = new MemoryStream();
             var writer = new StreamWriter(stream);
@@ -89,12 +98,13 @@ namespace uhttpsharp
             await writer.WriteLineAsync(string.Format("Content-Type: {0}", ContentType));
             await writer.WriteLineAsync(string.Format("Content-Length: {0}", ContentStream.Length));
             await writer.WriteLineAsync();
-            
-            ContentStream.Position = 0;
-            await ContentStream.CopyToAsync(writer.BaseStream);
-            ContentStream.Close();
 
             await writer.FlushAsync();
+
+            ContentStream.Position = 0;
+            await ContentStream.CopyToAsync(writer.BaseStream);
+
+            await writer.BaseStream.FlushAsync();
         }
     }
 }
