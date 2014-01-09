@@ -59,7 +59,7 @@ namespace uhttpsharp.Handlers
             var path = Path.GetFullPath(Path.Combine(httpRoot, requestPath));
             
             if (!File.Exists(path))
-                return await next();
+                return await next().ConfigureAwait(false);
 
             return new HttpResponse(GetContentType(path), File.OpenRead(path));
         }

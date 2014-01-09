@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace uhttpsharp.Handlers
 {
@@ -97,23 +94,23 @@ namespace uhttpsharp.Handlers
 
         public async Task<HttpResponse> Get(IHttpRequest request)
         {
-            return await CreateHttpRequest(await _controller.Get(request));
+            return await CreateHttpRequest(await _controller.Get(request).ConfigureAwait(false)).ConfigureAwait(false);
         }
         public async Task<HttpResponse> GetItem(IHttpRequest request)
         {
-            return await CreateHttpRequest(await _controller.GetItem(request));
+            return await CreateHttpRequest(await _controller.GetItem(request).ConfigureAwait(false)).ConfigureAwait(false);
         }
         public async Task<HttpResponse> Create(IHttpRequest request)
         {
-            return await CreateHttpRequest(await _controller.Create(request));
+            return await CreateHttpRequest(await _controller.Create(request).ConfigureAwait(false)).ConfigureAwait(false);
         }
         public async Task<HttpResponse> Upsert(IHttpRequest request)
         {
-            return await CreateHttpRequest(await _controller.Upsert(request));
+            return await CreateHttpRequest(await _controller.Upsert(request).ConfigureAwait(false)).ConfigureAwait(false);
         }
         public async Task<HttpResponse> Delete(IHttpRequest request)
         {
-            return await CreateHttpRequest(await _controller.Delete(request));
+            return await CreateHttpRequest(await _controller.Delete(request).ConfigureAwait(false)).ConfigureAwait(false);
         }
     }
 }
