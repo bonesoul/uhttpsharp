@@ -78,7 +78,6 @@ namespace uhttpsharp
                 {
                     Logger.Warn("Error while getting client", e);
                 }
-                
             }
 
             Logger.InfoFormat("Embedded uhttpserver stopped.");
