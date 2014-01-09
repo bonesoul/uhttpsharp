@@ -92,19 +92,26 @@ namespace uhttpsharp
         }
         public async Task WriteResponse(StreamWriter writer)
         {
-            await writer.WriteLineAsync(string.Format("{0} {1} {2}", Protocol, (int) Code, ResponseTexts[(int) Code]));
-            await writer.WriteLineAsync(string.Format("Date: {0}", DateTime.UtcNow.ToString("R")));
-            await writer.WriteLineAsync(string.Format("Connection: {0}", CloseConnection ? "close" : "Keep-Alive"));
-            await writer.WriteLineAsync(string.Format("Content-Type: {0}", ContentType));
-            await writer.WriteLineAsync(string.Format("Content-Length: {0}", ContentStream.Length));
-            await writer.WriteLineAsync();
+            using (var memoryStream = new MemoryStream())
+            using (var tempWriter = new StreamWriter(memoryStream))
+            {
+                WriteHeaders(tempWriter);
 
-            await writer.FlushAsync();
+                await memoryStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
+            }
 
             ContentStream.Position = 0;
-            await ContentStream.CopyToAsync(writer.BaseStream);
+            await ContentStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
+        }
 
-            await writer.BaseStream.FlushAsync();
+        private void WriteHeaders(StreamWriter tempWriter)
+        {
+            tempWriter.WriteLine("{0} {1} {2}", Protocol, (int)Code, ResponseTexts[(int)Code]);
+            tempWriter.WriteLine("Date: {0}", DateTime.UtcNow.ToString("R"));
+            tempWriter.WriteLine("Connection: {0}", CloseConnection ? "close" : "Keep-Alive");
+            tempWriter.WriteLine("Content-Type: {0}", ContentType);
+            tempWriter.WriteLine("Content-Length: {0}", ContentStream.Length);
+            tempWriter.WriteLine();
         }
     }
 }

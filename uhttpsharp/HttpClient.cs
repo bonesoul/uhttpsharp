@@ -58,7 +58,7 @@ namespace uhttpsharp
             {
                 while (_client.Connected)
                 {
-                    var request = await _requestProvider.Provide(_inputStream);
+                    var request = await _requestProvider.Provide(_inputStream).ConfigureAwait(false);
 
                     if (request != null)
                     {
@@ -67,11 +67,11 @@ namespace uhttpsharp
 
                         var getResponse = BuildHandlers(request)();
 
-                        var response = await getResponse;
+                        var response = await getResponse.ConfigureAwait(false);
 
                         if (response != null)
                         {
-                            await response.WriteResponse(_outputStream);
+                            await response.WriteResponse(_outputStream).ConfigureAwait(false);
                             if (response.CloseConnection)
                             {
                                 _client.Close();
