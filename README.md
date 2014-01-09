@@ -1,4 +1,4 @@
-# ÂµHttpSharp [![Build status](https://ci.appveyor.com/api/projects/status?id=1schhjbpx7oomrx7)](https://ci.appveyor.com/project/uhttpsharp)
+# µHttpSharp [![Build status](https://ci.appveyor.com/api/projects/status?id=1schhjbpx7oomrx7)](https://ci.appveyor.com/project/uhttpsharp)
 
 A very lightweight & simple embedded http server for c# 
 
