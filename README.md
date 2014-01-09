@@ -4,13 +4,22 @@ A very lightweight & simple embedded http server for c#
 
 Usage : 
 
-	using (var httpServer = new HttpServer(800, new HttpRequestProvider()))
+	using (var httpServer = new HttpServer(new HttpRequestProvider()))
 	{
+		// Normal port 80 :
+		httpServer.Use(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 80)));
+        
+		// Ssl Support :
+		var serverCertificate = X509Certificate.CreateFromCertFile(@"TempCert.cer");
+		httpServer.Use(new ListenerSslDecorator(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 443)), serverCertificate));
+
+		// Request handling : 
 		httpServer.Use((context, next) => {
 			Console.WriteLine("Got Request!");
 			return next();
 		});
 
+		// Handler classes : 
 		httpServer.Use(new TimingHandler());
 		httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
 										.With("about", new AboutHandler()));
@@ -18,6 +27,7 @@ Usage :
 		httpServer.Use(new ErrorHandler());
 		
 		httpServer.Start();
+		
 		Console.ReadLine();
 	}
 	
@@ -32,6 +42,7 @@ More modifications will be made to make it more "user friendly" out of the box :
 
 * [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) controllers
 * NuGet package
+* ~~Ssl Support~~ (Done!)
 
 ## Performance
 
