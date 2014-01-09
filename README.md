@@ -1,3 +1,102 @@
-# uhttpsharp [![Build status](https://ci.appveyor.com/api/projects/status?id=308vqcmqu32syyub)](https://ci.appveyor.com/project/uhttpsharp)
+# µHttpSharp [![Build status](https://ci.appveyor.com/api/projects/status?id=1schhjbpx7oomrx7)](https://ci.appveyor.com/project/uhttpsharp)
 
 A very lightweight & simple embedded http server for c# 
+
+Usage : 
+
+	using (var httpServer = new HttpServer(800, new HttpRequestProvider()))
+	{
+		httpServer.Use((context, next) => {
+			Console.WriteLine("Got Request!");
+			return next();
+		});
+
+		httpServer.Use(new TimingHandler());
+		httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
+										.With("about", new AboutHandler()));
+		httpServer.Use(new FileHandler());
+		httpServer.Use(new ErrorHandler());
+		
+		httpServer.Start();
+		Console.ReadLine();
+	}
+	
+## Under Construction
+
+ÂµHttpSharp is going through heavy modifications to be more like [koa](http://koajs.com) :  
+
+* ~~new `IHttpContext` interface (Gathers `IHttpResponse`, `IHttpRequest` and maybe even session)~~ (Done)
+* ~~new `httpServer.Use((context, next) => { next(); });` syntax~~ (Done)
+
+More modifications will be made to make it more "user friendly" out of the box :
+
+* [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) controllers
+* NuGet package
+
+## Performance
+
+µHttpSharp manages to handle **13000 requests a sec** (With Keep-Alive support) on core i5 machine, cpu goes to 27%, memory consumption and number of threads is stable.
+
+	ab -n 10000 -c 50 -k -s 2 http://localhost:8000/
+	
+	This is ApacheBench, Version 2.3 <$Revision: 1528965 $>
+	Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+	Licensed to The Apache Software Foundation, http://www.apache.org/
+
+	Benchmarking localhost (be patient)
+	Completed 1000 requests
+	Completed 2000 requests
+	Completed 3000 requests
+	Completed 4000 requests
+	Completed 5000 requests
+	Completed 6000 requests
+	Completed 7000 requests
+	Completed 8000 requests
+	Completed 9000 requests
+
+
+	Server Software:
+	Server Hostname:        localhost
+	Server Port:            8000
+
+	Document Path:          /
+	Document Length:        21 bytes
+
+	Concurrency Level:      50
+	Time taken for tests:   0.707 seconds
+	Complete requests:      9357
+	Failed requests:        0
+	Keep-Alive requests:    9363
+	Total transferred:      1507527 bytes
+	HTML transferred:       196644 bytes
+	Requests per second:    13245.36 [#/sec] (mean)
+	Time per request:       3.775 [ms] (mean)
+	Time per request:       0.075 [ms] (mean, across all concurrent requests)
+	Transfer rate:          2083.53 [Kbytes/sec] received
+
+	Connection Times (ms)
+				  min  mean[+/-sd] median   max
+	Connect:        0    0   0.0      0       1
+	Processing:     1    4   0.7      4      13
+	Waiting:        1    4   0.7      4      13
+	Total:          1    4   0.7      4      13
+
+	Percentage of the requests served within a certain time (ms)
+	  50%      4
+	  66%      4
+	  75%      4
+	  80%      4
+	  90%      4
+	  95%      4
+	  98%      5
+	  99%      9
+	 100%      4 (longest request)
+
+## How To Contribute?
+
+* Use it
+* Open Issues
+* Fork and Push requests
+
+
+

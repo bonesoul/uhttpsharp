@@ -16,16 +16,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System.Threading.Tasks;
 using uhttpsharp;
 
-namespace uhttpsharpdemo
+namespace uhttpsharpdemo.Handlers
 {
-    [HttpRequestHandlerAttributes("about")]
-    public class AboutHandler : HttpRequestHandler
+    public class ErrorHandler : IHttpRequestHandler
     {
-        public override HttpResponse Handle(HttpRequest httpRequest)
+        public Task Handle(IHttpContext context, System.Func<Task> next)
         {
-            return HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Sample http-request-handler");
+            context.Response = new HttpResponse(HttpResponseCode.NotFound, "These are not the droids you are looking for.", true);
+            return Task.Factory.GetCompleted();
         }
     }
 }

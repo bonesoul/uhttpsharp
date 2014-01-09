@@ -17,8 +17,14 @@
  */
 
 using System;
+using System.IO;
+using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using uhttpsharp;
+using uhttpsharp.Handlers;
+using uhttpsharp.Listeners;
+using uhttpsharpdemo.Handlers;
 
 namespace uhttpsharpdemo
 {
@@ -26,20 +32,32 @@ namespace uhttpsharpdemo
     {
         private static void Main()
         {
-            for (var port = 8000; port <= 65535; ++port)
+            log4net.Config.XmlConfigurator.Configure();
+
+            var serverCertificate = X509Certificate.CreateFromCertFile(@"TempCert.cer");
+
+            using (var httpServer = new HttpServer(new HttpRequestProvider()))
             {
-                HttpServer.Instance.Port = port;
-                try
+                httpServer.Use(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 80)));
+                httpServer.Use(new ListenerSslDecorator(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 443)), serverCertificate));
+
+                httpServer.Use(new TimingHandler());
+                
+                httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
+                                               .With("about", new AboutHandler()));
+
+                httpServer.Use(new FileHandler());
+                httpServer.Use(new ErrorHandler());
+                httpServer.Use((context, next) =>
                 {
-                    HttpServer.Instance.StartUp();
-                }
-                catch (SocketException)
-                {
-                    continue;
-                }
-                break;
+                    Console.WriteLine("Got Request!");
+                    return next();
+                });
+
+                httpServer.Start();
+                Console.ReadLine();
             }
-            Console.ReadLine();
+                
         }
     }
 }

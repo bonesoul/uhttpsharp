@@ -16,54 +16,77 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using log4net;
 using System;
-using System.Net;
-using System.Net.Sockets;
+using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
+using System.Threading.Tasks;
+using uhttpsharp.Listeners;
 
 namespace uhttpsharp
 {
-    public sealed class HttpServer
+    public sealed class HttpServer : IDisposable
     {
-        public static readonly HttpServer Instance = new HttpServer();
+        private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public int Port = 80;
-        public string Banner = string.Empty;
-
-        private TcpListener _listener;
         private bool _isActive;
 
-        public string Address
+        private readonly IList<IHttpRequestHandler> _handlers = new List<IHttpRequestHandler>();
+        private readonly IList<IHttpListener> _listeners = new List<IHttpListener>();
+
+        private readonly IHttpRequestProvider _requestProvider;
+
+
+        public HttpServer(IHttpRequestProvider requestProvider)
         {
-            get { return string.Format("{0}:{1}", IPAddress.Loopback, Port); }
+            _requestProvider = requestProvider;
         }
 
-        private HttpServer()
+        public void Use(IHttpRequestHandler handler)
         {
-            Banner = string.Format("uhttpsharp {0}", Assembly.GetExecutingAssembly().GetName().Version);
+            _handlers.Add(handler);
         }
 
-        public void StartUp()
+        public void Use(IHttpListener listener)
         {
-            if (_isActive)
-                return;
-            _listener = new TcpListener(IPAddress.Loopback, Port);
-            _listener.Start();
-            var serverThread = new Thread(Listen) {IsBackground = true};
-            serverThread.Start();
+            _listeners.Add(listener);
         }
 
-        private void Listen()
+        public void Start()
         {
             _isActive = true;
 
-            Console.WriteLine(string.Format("Embedded httpserver started.. [{0}:{1}]", IPAddress.Loopback, Port));
+            foreach (var listener in _listeners)
+            {
+                IHttpListener tempListener = listener;
 
+                Task.Factory.StartNew(() => Listen(tempListener));
+            }
+
+            Logger.InfoFormat("Embedded uhttpserver started.");
+        }
+
+        private async void Listen(IHttpListener listener)
+        {
             while (_isActive)
             {
-                new HttpClient(_listener.AcceptTcpClient());
+                try
+                {
+                    new HttpClient(await listener.GetClient().ConfigureAwait(false), _handlers, _requestProvider);
+                }
+                catch (Exception e)
+                {
+                    Logger.Warn("Error while getting client", e);
+                }
+                
             }
+
+            Logger.InfoFormat("Embedded uhttpserver stopped.");
+        }
+
+        public void Dispose()
+        {
+            _isActive = false;
         }
     }
 }

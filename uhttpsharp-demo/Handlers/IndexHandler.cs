@@ -16,16 +16,30 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System;
+using System.Net.Cache;
+using System.Text;
+using System.Threading.Tasks;
 using uhttpsharp;
 
-namespace uhttpsharpdemo
+namespace uhttpsharpdemo.Handlers
 {
-    [HttpRequestHandlerAttributes("")]
-    public class IndexHandler : HttpRequestHandler
+    public class IndexHandler : IHttpRequestHandler
     {
-        public override HttpResponse Handle(HttpRequest httpRequest)
+        private readonly HttpResponse _response;
+        private readonly HttpResponse _keepAliveResponse;
+
+        public IndexHandler()
         {
-            return new HttpResponse(HttpResponseCode.Ok, "Welcome to the Index. ☺");
+            byte[] contents = Encoding.UTF8.GetBytes("Welcome to the Index.");
+            _keepAliveResponse = new HttpResponse(HttpResponseCode.Ok, contents, true);
+            _response = new HttpResponse(HttpResponseCode.Ok, contents, false);
+        }
+
+        public Task Handle(IHttpContext context, Func<Task> next)
+        {
+            context.Response = context.Request.Headers.KeepAliveConnection() ? _keepAliveResponse : _response; ;
+            return Task.Factory.GetCompleted();
         }
     }
 }

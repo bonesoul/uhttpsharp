@@ -18,121 +18,181 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Odbc;
 using System.IO;
+using System.Runtime.Remoting.Messaging;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace uhttpsharp
 {
-    public sealed class HttpRequest
+    public class HttpRequestV2 : IHttpRequest
     {
-        public bool Valid { get; private set; }
-        public Dictionary<string, string> Headers { get; private set; }
-        public HttpMethod HttpMethod { get; private set; }
-        public string HttpProtocol { get; private set; }
-        public Uri Uri { get; private set; }
-        public string URL { get; private set; }
-        public HttpRequestParameters Parameters { get; private set; }
+        private readonly IHttpHeaders _headers;
+        private readonly HttpMethods _method;
+        private readonly string _protocol;
+        private readonly Uri _uri;
+        private readonly string[] _requestParameters;
 
-        private readonly Stream _stream;
-
-        public HttpRequest(Stream stream)
+        public HttpRequestV2(IHttpHeaders headers, HttpMethods method, string protocol, Uri uri, string[] requestParameters)
         {
-            Headers = new Dictionary<string, string>();
-            _stream = stream;
-            Process();
+            _headers = headers;
+            _method = method;
+            _protocol = protocol;
+            _uri = uri;
+            _requestParameters = requestParameters;
         }
 
-        private void Process()
+        public IHttpHeaders Headers
         {
-            Valid = false;
+            get { return _headers; }
+        }
 
+        public HttpMethods Method
+        {
+            get { return _method; }
+        }
+
+        public string Protocol
+        {
+            get { return _protocol; }
+        }
+
+        public Uri Uri
+        {
+            get { return _uri; }
+        }
+
+        public string[] RequestParameters
+        {
+            get { return _requestParameters; }
+        }
+    }
+
+    public interface IHttpRequest
+    {
+        IHttpHeaders Headers { get; }
+
+        HttpMethods Method { get; }
+
+        string Protocol { get; }
+
+        Uri Uri { get; }
+
+        string[] RequestParameters { get; }
+
+
+    }
+
+    public class HttpHeaders : IHttpHeaders
+    {
+        private readonly IDictionary<string, string> _values;
+        public HttpHeaders(IDictionary<string, string> values)
+        {
+            _values = values;
+        }
+
+        public string GetByName(string name)
+        {
+            return _values[name];
+        }
+        public bool TryGetByName(string name, out string value)
+        {
+            return _values.TryGetValue(name, out value);
+        }
+    }
+
+    public static class HttpHeadersExtensions
+    {
+        public static bool KeepAliveConnection(this IHttpHeaders headers)
+        {
+            string value;
+            return headers.TryGetByName("Connection", out value) && value.Equals("Keep-Alive", StringComparison.InvariantCultureIgnoreCase);
+        }
+    }
+
+    public interface IHttpHeaders
+    {
+
+        string GetByName(string name);
+
+        bool TryGetByName(string name, out string value);
+
+    }
+
+    public interface IHttpRequestProvider
+    {
+        /// <summary>
+        /// Provides an <see cref="IHttpRequest"/> based on the context of the stream,
+        /// May return null / throw exceptions on invalid requests.
+        /// </summary>
+        /// <param name="streamReader"></param>
+        /// <returns></returns>
+        Task<IHttpRequest> Provide(StreamReader streamReader);
+
+    }
+
+    public class HttpRequestProvider : IHttpRequestProvider
+    {
+        private static readonly char[] Separators = { '/' };
+
+        public async Task<IHttpRequest> Provide(StreamReader streamReader)
+        {
             // parse the http request
-            var request = ReadLine();
+            var request = await streamReader.ReadLineAsync().ConfigureAwait(false);
+            
             if (request == null)
-                return;
+                return null;
+
             var tokens = request.Split(' ');
 
             if (tokens.Length != 3)
             {
-                Console.WriteLine("httpserver: invalid http request.");
-                return;
+                return null;
             }
 
-            switch (tokens[0].ToUpper())
-            {
-                case "GET":
-                    HttpMethod = HttpMethod.Get;
-                    break;
-                case "POST":
-                    HttpMethod = HttpMethod.Post;
-                    break;
-            }
-
-            HttpProtocol = tokens[2];
-            URL = tokens[1];
-            Uri = new Uri("http://" + HttpServer.Instance.Address + "/" + URL.TrimStart('/'));
-            Parameters = new HttpRequestParameters(URL);
-
-            Console.WriteLine(string.Format("[{0}:{1}] URL: {2}", HttpProtocol, HttpMethod, URL));
+            var httpMethod = HttpMethodProvider.Default.Provide(tokens[0]);
+            var httpProtocol = tokens[2];
+            var uri = new Uri(tokens[1], UriKind.Relative);
+             
+            var headers = new Dictionary<string, string>();
 
             // get the headers
             string line;
-            while ((line = ReadLine()) != null)
+            while ((line = await streamReader.ReadLineAsync().ConfigureAwait(false)) != null)
             {
-                if (line.Equals("")) break;
-                var keys = line.Split(':');
-                Headers.Add(keys[0], keys[1]);
+                if (line.Equals(string.Empty)) break;
+                var headerKvp = SplitHeader(line);
+                headers.Add(headerKvp.Key, headerKvp.Value);
             }
 
-            Valid = true;
+            return new HttpRequestV2(new HttpHeaders(headers), httpMethod, httpProtocol, uri, uri.OriginalString.Split(Separators, StringSplitOptions.RemoveEmptyEntries));
         }
 
-        private string ReadLine()
+        private KeyValuePair<string, string> SplitHeader(string header)
         {
-            var buffer = string.Empty;
-
-            while (true)
-            {
-                var _char = _stream.ReadByte();
-                if (_char == '\n') break;
-                if (_char == '\r') continue;
-                if (_char == -1)
-                {
-                    if (buffer != string.Empty)
-                        return buffer;
-                    return null;
-                }
-                buffer += Convert.ToChar(_char);
-            }
-
-            return buffer;
+            var index = header.IndexOf(": ", StringComparison.InvariantCulture);
+            return new KeyValuePair<string, string>(header.Substring(0, index), header.Substring(index + 2).TrimStart(' '));
         }
+        
     }
 
-    public enum HttpMethod
-    {
-        Get,
-        Post
-    }
 
     public sealed class HttpRequestParameters
     {
-        public string Function { get; private set; }
-        public string[] Params { get; private set; }
+        private readonly string[] _params;
 
-        public HttpRequestParameters(string url)
+        private static readonly char[] Separators = {'/'};
+
+        public HttpRequestParameters(Uri uri)
         {
-            Function = "";
-            var tokens = url.Split('/');
+            var url = uri.OriginalString;
+            _params = url.Split(Separators, StringSplitOptions.RemoveEmptyEntries);
+        }
 
-            if (tokens.Length > 1)
-            {
-                Function = tokens[1];
-                Params = new string[tokens.Length - 2];
-                for (var i = 2; i < tokens.Length; i++)
-                {
-                    Params[i - 2] = tokens[i];
-                }
-            }
+        public IList<string> Params
+        {
+            get { return _params; }
         }
     }
 }

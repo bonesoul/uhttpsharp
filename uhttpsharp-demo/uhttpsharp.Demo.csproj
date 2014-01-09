@@ -2,21 +2,23 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{3D681959-4DA3-4A71-A68B-704D6411D5EA}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{55C5E8D2-F55E-4B9F-B96F-FCE201739D07}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>uhttpsharp</RootNamespace>
-    <AssemblyName>uhttpsharp</AssemblyName>
+    <RootNamespace>uhttpsharpdemo</RootNamespace>
+    <AssemblyName>uhttpsharp-demo</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -26,7 +28,8 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -51,30 +54,21 @@
     <Compile Include="..\AssemblyCommon.cs">
       <Link>Properties\AssemblyCommon.cs</Link>
     </Compile>
-    <Compile Include="Clients\ClientSslDecoerator.cs" />
-    <Compile Include="Clients\IClient.cs" />
-    <Compile Include="Handlers\FileHandler.cs" />
-    <Compile Include="HttpClient.cs" />
-    <Compile Include="HttpMethodProvider.cs" />
-    <Compile Include="HttpMethodProviderCache.cs" />
-    <Compile Include="HttpMethods.cs" />
-    <Compile Include="HttpRequest.cs" />
-    <Compile Include="HttpRequestHandler.cs" />
-    <Compile Include="Handlers\HttpRouter.cs" />
-    <Compile Include="HttpResponse.cs" />
-    <Compile Include="HttpServer.cs" />
-    <Compile Include="HttpServerExtensions.cs" />
-    <Compile Include="IHttpContext.cs" />
-    <Compile Include="IHttpMethodProvider.cs" />
-    <Compile Include="Listeners\IHttpListener.cs" />
-    <Compile Include="Listeners\SslListenerDecoerator.cs" />
-    <Compile Include="Listeners\TcpListenerAdapter.cs" />
+    <Compile Include="Handlers\AboutHandler.cs" />
+    <Compile Include="Handlers\ErrorHandler.cs" />
+    <Compile Include="Handlers\IndexHandler.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="HttpResponseCode.cs" />
-    <Compile Include="TaskFactoryExtensions.cs" />
-    <Compile Include="Clients\TcpClientAdapter.cs" />
+    <Compile Include="Handlers\TimingHandler.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\uhttpsharp\uhttpsharp.csproj">
+      <Project>{3D681959-4DA3-4A71-A68B-704D6411D5EA}</Project>
+      <Name>uhttpsharp</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
