@@ -18,7 +18,6 @@
 
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Remoting.Contexts;
 using System.Threading.Tasks;
 
 namespace uhttpsharp.Handlers
@@ -58,9 +57,14 @@ namespace uhttpsharp.Handlers
             
             var httpRoot = Path.GetFullPath(HttpRootDirectory ?? ".");
             var path = Path.GetFullPath(Path.Combine(httpRoot, requestPath));
-            
+
             if (!File.Exists(path))
+            {
                 await next();
+
+                return;
+            }
+                
 
             context.Response = new HttpResponse(GetContentType(path), File.OpenRead(path), context.Request.Headers.KeepAliveConnection());
         }

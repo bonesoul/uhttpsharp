@@ -18,34 +18,39 @@
 
 using System.Net;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using log4net;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using uhttpsharp.Clients;
 
 namespace uhttpsharp
 {
     internal sealed class HttpClient
     {
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private readonly TcpClient _client;
+        
+        private readonly IClient _client;
         private readonly StreamReader _inputStream;
         private readonly StreamWriter _outputStream;
         private readonly IList<IHttpRequestHandler> _requestHandlers;
         private readonly IHttpRequestProvider _requestProvider;
         private readonly EndPoint _remoteEndPoint;
 
-        public HttpClient(TcpClient client, IList<IHttpRequestHandler> requestHandlers, IHttpRequestProvider requestProvider)
+        public HttpClient(IClient client, IList<IHttpRequestHandler> requestHandlers, IHttpRequestProvider requestProvider)
         {
-            _remoteEndPoint = client.Client.RemoteEndPoint;
+            _remoteEndPoint = client.RemoteEndPoint;
             _client = client;
             _requestHandlers = requestHandlers;
             _requestProvider = requestProvider;
-            _outputStream = new StreamWriter(new BufferedStream(client.GetStream())) {NewLine = "\r\n"};
-            _inputStream = new StreamReader(new BufferedStream(_client.GetStream()));
+
+            var bufferedStream = new BufferedStream(_client.Stream);
+            
+            _outputStream = new StreamWriter(bufferedStream) {NewLine = "\r\n"};
+            _inputStream = new StreamReader(bufferedStream);
 
             Logger.InfoFormat("Got Client {0}", _remoteEndPoint);
 
@@ -65,7 +70,7 @@ namespace uhttpsharp
 
                         var context = new HttpContext(request);
 
-                        Logger.InfoFormat("{1} : Got request {0}", request.Uri, _client.Client.RemoteEndPoint);
+                        Logger.InfoFormat("{1} : Got request {0}", request.Uri, _client.RemoteEndPoint);
 
                         var getResponse = BuildHandlers(context)();
 

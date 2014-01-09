@@ -17,8 +17,13 @@
  */
 
 using System;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using uhttpsharp;
 using uhttpsharp.Handlers;
+using uhttpsharp.Listeners;
 using uhttpsharpdemo.Handlers;
 
 namespace uhttpsharpdemo
@@ -29,8 +34,13 @@ namespace uhttpsharpdemo
         {
             log4net.Config.XmlConfigurator.Configure();
 
-            using (var httpServer = new HttpServer(8000, new HttpRequestProvider()))
+            var serverCertificate = X509Certificate.CreateFromCertFile(@"TempCert.cer");
+
+            using (var httpServer = new HttpServer(new HttpRequestProvider()))
             {
+                httpServer.Use(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 80)));
+                httpServer.Use(new ListenerSslDecorator(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 443)), serverCertificate));
+
                 httpServer.Use(new TimingHandler());
                 
                 httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
