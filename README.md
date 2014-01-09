@@ -25,8 +25,8 @@ Usage :
 
 µHttpSharp is going through heavy modifications to be more like [koa](http://koajs.com) :  
 
-* new `IHttpContext` interface (Gathers `IHttpResponse`, `IHttpRequest` and maybe even session)
-* ~~new `httpServer.Use((context, next) => { next(); });` syntax~~
+* ~~new `IHttpContext` interface (Gathers `IHttpResponse`, `IHttpRequest` and maybe even session)~~ (Done)
+* ~~new `httpServer.Use((context, next) => { next(); });` syntax~~ (Done)
 
 More modifications will be made to make it more "user friendly" out of the box :
 
