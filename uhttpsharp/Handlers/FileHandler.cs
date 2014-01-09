@@ -51,7 +51,7 @@ namespace uhttpsharp.Handlers
                 return MimeTypes[extension];
             return DefaultMimeType;
         }
-        public async Task<HttpResponse> Handle(IHttpRequest httpRequest, System.Func<Task<HttpResponse>> next)
+        public async Task<IHttpResponse> Handle(IHttpRequest httpRequest, System.Func<Task<IHttpResponse>> next)
         {
             var requestPath = httpRequest.Uri.OriginalString.TrimStart('/');
             

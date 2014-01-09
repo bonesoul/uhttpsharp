@@ -96,7 +96,7 @@ namespace uhttpsharp
         }
 
 
-        private Func<Task<HttpResponse>> BuildHandlers(IHttpRequest request, int index = 0)
+        private Func<Task<IHttpResponse>> BuildHandlers(IHttpRequest request, int index = 0)
         {
             if (index > _requestHandlers.Count)
             {

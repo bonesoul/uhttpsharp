@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading.Tasks;
 using log4net;
 using uhttpsharp;
 
@@ -10,7 +11,7 @@ namespace uhttpsharpdemo.Handlers
     {
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public async System.Threading.Tasks.Task<HttpResponse> Handle(IHttpRequest httpRequest, Func<System.Threading.Tasks.Task<HttpResponse>> next)
+        public async Task<IHttpResponse> Handle(IHttpRequest httpRequest, Func<Task<IHttpResponse>> next)
         {
             var stopWatch = Stopwatch.StartNew();
             var retVal = await next();

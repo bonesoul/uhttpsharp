@@ -32,9 +32,9 @@ namespace uhttpsharpdemo.Handlers
             _contents = Encoding.UTF8.GetBytes("Welcome to the Index. ☺");
         }
 
-        public Task<HttpResponse> Handle(IHttpRequest httpRequest, Func<Task<HttpResponse>> next)
+        public Task<IHttpResponse> Handle(IHttpRequest httpRequest, Func<Task<IHttpResponse>> next)
         {
-            return Task.FromResult(new HttpResponse(HttpResponseCode.Ok, _contents));
+            return Task.FromResult<IHttpResponse>(new HttpResponse(HttpResponseCode.Ok, _contents));
         }
     }
 }

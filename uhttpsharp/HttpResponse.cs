@@ -23,7 +23,14 @@ using System.Threading.Tasks;
 
 namespace uhttpsharp
 {
-    public sealed class HttpResponse
+    public interface IHttpResponse
+    {
+        Task WriteResponse(StreamWriter writer);
+
+        bool CloseConnection { get; }
+    }
+
+    public sealed class HttpResponse : IHttpResponse
     {
         private static readonly Dictionary<int, string> ResponseTexts =
             new Dictionary<int, string>

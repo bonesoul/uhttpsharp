@@ -9,7 +9,7 @@ namespace uhttpsharp
     public static class HttpServerExtensions
     {
 
-        public static void  Use(this HttpServer server, Func<IHttpRequest, Func<Task<HttpResponse>>, Task<HttpResponse>> method)
+        public static void  Use(this HttpServer server, Func<IHttpRequest, Func<Task<IHttpResponse>>, Task<IHttpResponse>> method)
         {
             server.Use(new AnonymousHttpRequestHandler(method));
         }
@@ -18,14 +18,14 @@ namespace uhttpsharp
 
     public class AnonymousHttpRequestHandler : IHttpRequestHandler
     {
-        private readonly Func<IHttpRequest, Func<Task<HttpResponse>>, Task<HttpResponse>> _method;
+        private readonly Func<IHttpRequest, Func<Task<IHttpResponse>>, Task<IHttpResponse>> _method;
 
-        public AnonymousHttpRequestHandler(Func<IHttpRequest, Func<Task<HttpResponse>>, Task<HttpResponse>> method)
+        public AnonymousHttpRequestHandler(Func<IHttpRequest, Func<Task<IHttpResponse>>, Task<IHttpResponse>> method)
         {
             _method = method;
         }
 
-        public Task<HttpResponse> Handle(IHttpRequest httpRequest, Func<Task<HttpResponse>> next)
+        public Task<IHttpResponse> Handle(IHttpRequest httpRequest, Func<Task<IHttpResponse>> next)
         {
             return _method(httpRequest, next);
         }

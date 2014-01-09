@@ -33,7 +33,7 @@ namespace uhttpsharp.Handlers
             return this;
         }
 
-        public Task<HttpResponse> Handle(IHttpRequest request, Func<Task<HttpResponse>> nextHandler)
+        public Task<IHttpResponse> Handle(IHttpRequest request, Func<Task<IHttpResponse>> nextHandler)
         {
             string function = string.Empty;
 

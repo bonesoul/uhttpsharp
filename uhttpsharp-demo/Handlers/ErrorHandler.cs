@@ -23,9 +23,9 @@ namespace uhttpsharpdemo.Handlers
 {
     public class ErrorHandler : IHttpRequestHandler
     {
-        public Task<HttpResponse> Handle(IHttpRequest httpRequest, System.Func<System.Threading.Tasks.Task<HttpResponse>> next)
+        public Task<IHttpResponse> Handle(IHttpRequest httpRequest, System.Func<System.Threading.Tasks.Task<IHttpResponse>> next)
         {
-            return Task.FromResult(new HttpResponse(HttpResponseCode.NotFound, "These are not the droids you are looking for."));
+            return Task.FromResult<IHttpResponse>(new HttpResponse(HttpResponseCode.NotFound, "These are not the droids you are looking for."));
         }
     }
 }
