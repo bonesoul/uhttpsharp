@@ -35,7 +35,7 @@ More modifications will be made to make it more "user friendly" out of the box :
 
 ## Performance
 
-µHttpSharp manages to handle *900 requests a sec* on core i5 machine, cpu goes to 100%, memory consumption and number of threads is stable.
+µHttpSharp manages to handle *3300 requests a sec* on core i5 machine, cpu goes to 27%, memory consumption and number of threads is stable.
 
 That's nice, Not good as koa, But i'm going to try push it further.
 
