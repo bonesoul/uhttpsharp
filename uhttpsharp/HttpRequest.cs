@@ -130,7 +130,7 @@ namespace uhttpsharp
         public async Task<IHttpRequest> Provide(StreamReader streamReader)
         {
             // parse the http request
-            var request = await streamReader.ReadLineAsync();
+            var request = await streamReader.ReadLineAsync().ConfigureAwait(false);
             
             if (request == null)
                 return null;
@@ -150,7 +150,7 @@ namespace uhttpsharp
 
             // get the headers
             string line;
-            while ((line = await streamReader.ReadLineAsync()) != null)
+            while ((line = await streamReader.ReadLineAsync().ConfigureAwait(false)) != null)
             {
                 if (line.Equals(string.Empty)) break;
                 var headerKvp = SplitHeader(line);
