@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
 
 namespace uhttpsharp
@@ -50,6 +51,8 @@ namespace uhttpsharp
         public HttpResponseCode Code { get; private set; }
         private Stream ContentStream { get; set; }
 
+        private readonly Stream _headerStream = new MemoryStream();
+
         public HttpResponse(HttpResponseCode code, string content)
             : this(code, "text/html; charset=utf-8", StringToStream(content))
         {
@@ -66,6 +69,8 @@ namespace uhttpsharp
 
             Code = code;
             ContentStream = contentStream;
+
+            WriteHeaders(new StreamWriter(_headerStream));
         }
         public HttpResponse(HttpResponseCode code, byte[] contentStream) 
             : this (code, "text/html; charset=utf-8", new MemoryStream(contentStream))
@@ -90,14 +95,9 @@ namespace uhttpsharp
         }
         public async Task WriteResponse(StreamWriter writer)
         {
-            using (var memoryStream = new MemoryStream())
-            using (var tempWriter = new StreamWriter(memoryStream))
-            {
-                WriteHeaders(tempWriter);
-                memoryStream.Position = 0;
-                await memoryStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
-            }
-
+            _headerStream.Position = 0;
+            await _headerStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
+            
             ContentStream.Position = 0;
             await ContentStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
             await writer.BaseStream.FlushAsync();
