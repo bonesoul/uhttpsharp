@@ -38,7 +38,11 @@ namespace uhttpsharpdemo
 
                 httpServer.Use(new FileHandler());
                 httpServer.Use(new ErrorHandler());
-
+                httpServer.Use((context, next) =>
+                {
+                    Console.WriteLine("Got Request!");
+                    return next();
+                });
 
                 httpServer.Start();
                 Console.ReadLine();
