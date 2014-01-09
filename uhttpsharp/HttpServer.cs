@@ -67,7 +67,15 @@ namespace uhttpsharp
 
             while (_isActive)
             {
-                new HttpClient(await _listener.AcceptTcpClientAsync().ConfigureAwait(false), _handlers, _requestProvider);
+                try
+                {
+                    new HttpClient(await _listener.AcceptTcpClientAsync().ConfigureAwait(false), _handlers, _requestProvider);
+                }
+                catch (Exception e)
+                {
+                    Logger.Warn("Error while getting client", e);
+                }
+                
             }
 
             Logger.InfoFormat("Embedded uhttpserver stopped @ {0}:{1}", IPAddress.Loopback, _port);

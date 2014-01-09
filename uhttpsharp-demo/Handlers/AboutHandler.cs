@@ -27,7 +27,7 @@ namespace uhttpsharpdemo.Handlers
 
         public Task Handle(IHttpContext context, Func<Task> next)
         {
-            context.Response = HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Sample http-request-handler");
+            context.Response = HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Sample http-request-handler", context.Request.Headers.KeepAliveConnection());
 
             return Task.Factory.GetCompleted();
         }

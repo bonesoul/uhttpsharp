@@ -26,17 +26,19 @@ namespace uhttpsharpdemo.Handlers
 {
     public class IndexHandler : IHttpRequestHandler
     {
-        private readonly HttpResponse _httpResponse;
+        private readonly HttpResponse _response;
+        private readonly HttpResponse _keepAliveResponse;
 
         public IndexHandler()
         {
-            byte[] contents = Encoding.UTF8.GetBytes("Welcome to the Index. ☺");
-            _httpResponse = new HttpResponse(HttpResponseCode.Ok, contents);
+            byte[] contents = Encoding.UTF8.GetBytes("Welcome to the Index.");
+            _keepAliveResponse = new HttpResponse(HttpResponseCode.Ok, contents, true);
+            _response = new HttpResponse(HttpResponseCode.Ok, contents, false);
         }
 
         public Task Handle(IHttpContext context, Func<Task> next)
         {
-            context.Response = _httpResponse;
+            context.Response = context.Request.Headers.KeepAliveConnection() ? _keepAliveResponse : _response; ;
             return Task.Factory.GetCompleted();
         }
     }

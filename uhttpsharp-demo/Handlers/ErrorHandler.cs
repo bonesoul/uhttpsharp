@@ -25,7 +25,7 @@ namespace uhttpsharpdemo.Handlers
     {
         public Task Handle(IHttpContext context, System.Func<Task> next)
         {
-            context.Response = new HttpResponse(HttpResponseCode.NotFound, "These are not the droids you are looking for.");
+            context.Response = new HttpResponse(HttpResponseCode.NotFound, "These are not the droids you are looking for.", true);
             return Task.Factory.GetCompleted();
         }
     }

@@ -47,43 +47,43 @@ namespace uhttpsharp
 
         public string Protocol { get; private set; }
         public string ContentType { get; private set; }
-        public bool CloseConnection { get; private set; }
         public HttpResponseCode Code { get; private set; }
         private Stream ContentStream { get; set; }
 
         private readonly Stream _headerStream = new MemoryStream();
+        private readonly bool _closeConnection;
 
-        public HttpResponse(HttpResponseCode code, string content)
-            : this(code, "text/html; charset=utf-8", StringToStream(content))
+        public HttpResponse(HttpResponseCode code, string content, bool closeConnection)
+            : this(code, "text/html; charset=utf-8", StringToStream(content), closeConnection)
         {
         }
-        public HttpResponse(string contentType, Stream contentStream)
-            : this(HttpResponseCode.Ok, contentType, contentStream)
+        public HttpResponse(string contentType, Stream contentStream, bool closeConnection)
+            : this(HttpResponseCode.Ok, contentType, contentStream, closeConnection)
         {
         }
-        private HttpResponse(HttpResponseCode code, string contentType, Stream contentStream)
+        private HttpResponse(HttpResponseCode code, string contentType, Stream contentStream, bool keepAliveConnection)
         {
             Protocol = "HTTP/1.1";
             ContentType = contentType;
-            CloseConnection = true;
-
+            
             Code = code;
             ContentStream = contentStream;
+            _closeConnection = !keepAliveConnection;
 
             WriteHeaders(new StreamWriter(_headerStream));
         }
-        public HttpResponse(HttpResponseCode code, byte[] contentStream) 
-            : this (code, "text/html; charset=utf-8", new MemoryStream(contentStream))
+        public HttpResponse(HttpResponseCode code, byte[] contentStream, bool closeConnection) 
+            : this (code, "text/html; charset=utf-8", new MemoryStream(contentStream), closeConnection)
         {
         }
 
-        public static HttpResponse CreateWithMessage(HttpResponseCode code, string message, string body = "")
+        public static HttpResponse CreateWithMessage(HttpResponseCode code, string message, bool keepAliveConnection, string body = "")
         {
             return new HttpResponse(
                 code,
                 string.Format(
                     "<html><head><title>{0}</title></head><body><h1>{0}</h1><hr>{1}</body></html>",
-                    message, body));
+                    message, body), keepAliveConnection);
         }
         private static Stream StringToStream(string content)
         {
@@ -103,11 +103,16 @@ namespace uhttpsharp
             await writer.BaseStream.FlushAsync();
         }
 
+        public bool CloseConnection
+        {
+            get { return _closeConnection; }
+        }
+
         private void WriteHeaders(StreamWriter tempWriter)
         {
             tempWriter.WriteLine("{0} {1} {2}", Protocol, (int)Code, ResponseTexts[(int)Code]);
             tempWriter.WriteLine("Date: {0}", DateTime.UtcNow.ToString("R"));
-            tempWriter.WriteLine("Connection: {0}", CloseConnection ? "close" : "Keep-Alive");
+            tempWriter.WriteLine("Connection: {0}", _closeConnection ? "Close" : "Keep-Alive");
             tempWriter.WriteLine("Content-Type: {0}", ContentType);
             tempWriter.WriteLine("Content-Length: {0}", ContentStream.Length);
             tempWriter.WriteLine();

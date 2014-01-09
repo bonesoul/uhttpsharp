@@ -76,7 +76,7 @@ namespace uhttpsharp
                         if (response != null)
                         {
                             await response.WriteResponse(_outputStream).ConfigureAwait(false);
-                            if (response.CloseConnection)
+                            if (!request.Headers.KeepAliveConnection() || response.CloseConnection)
                             {
                                 _client.Close();
                             }

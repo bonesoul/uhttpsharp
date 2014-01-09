@@ -18,6 +18,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Remoting.Contexts;
 using System.Threading.Tasks;
 
 namespace uhttpsharp.Handlers
@@ -61,7 +62,7 @@ namespace uhttpsharp.Handlers
             if (!File.Exists(path))
                 await next();
 
-            context.Response = new HttpResponse(GetContentType(path), File.OpenRead(path));
+            context.Response = new HttpResponse(GetContentType(path), File.OpenRead(path), context.Request.Headers.KeepAliveConnection());
         }
     }
 }
