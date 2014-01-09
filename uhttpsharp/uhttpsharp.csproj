@@ -51,6 +51,8 @@
     <Compile Include="..\AssemblyCommon.cs">
       <Link>Properties\AssemblyCommon.cs</Link>
     </Compile>
+    <Compile Include="Clients\ClientSslDecoerator.cs" />
+    <Compile Include="Clients\IClient.cs" />
     <Compile Include="Handlers\FileHandler.cs" />
     <Compile Include="HttpClient.cs" />
     <Compile Include="HttpMethodProvider.cs" />
@@ -64,9 +66,13 @@
     <Compile Include="HttpServerExtensions.cs" />
     <Compile Include="IHttpContext.cs" />
     <Compile Include="IHttpMethodProvider.cs" />
+    <Compile Include="Listeners\IHttpListener.cs" />
+    <Compile Include="Listeners\SslListenerDecoerator.cs" />
+    <Compile Include="Listeners\TcpListenerAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HttpResponseCode.cs" />
     <Compile Include="TaskFactoryExtensions.cs" />
+    <Compile Include="Clients\TcpClientAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

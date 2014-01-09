@@ -19,10 +19,9 @@
 using log4net;
 using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Threading.Tasks;
+using uhttpsharp.Listeners;
 
 namespace uhttpsharp
 {
@@ -30,19 +29,16 @@ namespace uhttpsharp
     {
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly int _port;
-        
-        private TcpListener _listener;
         private bool _isActive;
 
         private readonly IList<IHttpRequestHandler> _handlers = new List<IHttpRequestHandler>();
+        private readonly IList<IHttpListener> _listeners = new List<IHttpListener>();
 
         private readonly IHttpRequestProvider _requestProvider;
 
 
-        public HttpServer(int port, IHttpRequestProvider requestProvider)
+        public HttpServer(IHttpRequestProvider requestProvider)
         {
-            _port = port;
             _requestProvider = requestProvider;
         }
 
@@ -51,25 +47,32 @@ namespace uhttpsharp
             _handlers.Add(handler);
         }
 
-        public void Start()
+        public void Use(IHttpListener listener)
         {
-            _listener = new TcpListener(IPAddress.Loopback, _port);
-            _listener.Start();
-
-            _isActive = true;
-
-            Task.Factory.StartNew(Listen);
+            _listeners.Add(listener);
         }
 
-        private async void Listen()
+        public void Start()
         {
-            Logger.InfoFormat("Embedded uhttpserver started @ {0}:{1}", IPAddress.Loopback, _port);
+            _isActive = true;
 
+            foreach (var listener in _listeners)
+            {
+                IHttpListener tempListener = listener;
+
+                Task.Factory.StartNew(() => Listen(tempListener));
+            }
+
+            Logger.InfoFormat("Embedded uhttpserver started.");
+        }
+
+        private async void Listen(IHttpListener listener)
+        {
             while (_isActive)
             {
                 try
                 {
-                    new HttpClient(await _listener.AcceptTcpClientAsync().ConfigureAwait(false), _handlers, _requestProvider);
+                    new HttpClient(await listener.GetClient().ConfigureAwait(false), _handlers, _requestProvider);
                 }
                 catch (Exception e)
                 {
@@ -78,7 +81,7 @@ namespace uhttpsharp
                 
             }
 
-            Logger.InfoFormat("Embedded uhttpserver stopped @ {0}:{1}", IPAddress.Loopback, _port);
+            Logger.InfoFormat("Embedded uhttpserver stopped.");
         }
 
         public void Dispose()
