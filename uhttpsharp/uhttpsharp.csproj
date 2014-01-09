@@ -62,9 +62,11 @@
     <Compile Include="HttpResponse.cs" />
     <Compile Include="HttpServer.cs" />
     <Compile Include="HttpServerExtensions.cs" />
+    <Compile Include="IHttpContext.cs" />
     <Compile Include="IHttpMethodProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HttpResponseCode.cs" />
+    <Compile Include="TaskFactoryExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -23,6 +23,6 @@ namespace uhttpsharp
 {
     public interface IHttpRequestHandler
     {
-        Task<IHttpResponse> Handle(IHttpRequest httpRequest, Func<Task<IHttpResponse>> next);
+        Task Handle(IHttpContext context, Func<Task> next);
     }
 }

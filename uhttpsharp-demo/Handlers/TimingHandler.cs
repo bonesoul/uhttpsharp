@@ -11,14 +11,13 @@ namespace uhttpsharpdemo.Handlers
     {
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public async Task<IHttpResponse> Handle(IHttpRequest httpRequest, Func<Task<IHttpResponse>> next)
+        public async Task Handle(IHttpContext context, Func<Task> next)
         {
             var stopWatch = Stopwatch.StartNew();
-            var retVal = await next();
+            await next();
             
-            Logger.InfoFormat("request {0} took {1}", httpRequest.Uri, stopWatch.Elapsed);
+            Logger.InfoFormat("request {0} took {1}", context.Request.Uri, stopWatch.Elapsed);
 
-            return retVal;
         }
     }
 }

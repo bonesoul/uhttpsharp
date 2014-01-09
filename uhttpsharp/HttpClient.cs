@@ -63,11 +63,15 @@ namespace uhttpsharp
                     if (request != null)
                     {
 
+                        var context = new HttpContext(request);
+
                         Logger.InfoFormat("{1} : Got request {0}", request.Uri, _client.Client.RemoteEndPoint);
 
-                        var getResponse = BuildHandlers(request)();
+                        var getResponse = BuildHandlers(context)();
 
-                        var response = await getResponse.ConfigureAwait(false);
+                        await getResponse.ConfigureAwait(false);
+
+                        var response = context.Response;
 
                         if (response != null)
                         {
@@ -96,14 +100,35 @@ namespace uhttpsharp
         }
 
 
-        private Func<Task<IHttpResponse>> BuildHandlers(IHttpRequest request, int index = 0)
+        private Func<Task> BuildHandlers(IHttpContext context, int index = 0)
         {
             if (index > _requestHandlers.Count)
             {
                 return null;
             }
 
-            return () => _requestHandlers[index].Handle(request, BuildHandlers(request, index + 1));
+            return () => _requestHandlers[index].Handle(context, BuildHandlers(context, index + 1));
+        }
+    }
+
+    internal class HttpContext : IHttpContext
+    {
+        private readonly IHttpRequest _request;
+        private IHttpResponse _response;
+        public HttpContext(IHttpRequest request)
+        {
+            _request = request;
+        }
+
+        public IHttpRequest Request
+        {
+            get { return _request; }
+        }
+
+        public IHttpResponse Response
+        {
+            get { return _response; }
+            set { _response = value; }
         }
     }
 }

@@ -94,12 +94,13 @@ namespace uhttpsharp
             using (var tempWriter = new StreamWriter(memoryStream))
             {
                 WriteHeaders(tempWriter);
-
+                memoryStream.Position = 0;
                 await memoryStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
             }
 
             ContentStream.Position = 0;
             await ContentStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
+            await writer.BaseStream.FlushAsync();
         }
 
         private void WriteHeaders(StreamWriter tempWriter)
@@ -110,6 +111,7 @@ namespace uhttpsharp
             tempWriter.WriteLine("Content-Type: {0}", ContentType);
             tempWriter.WriteLine("Content-Length: {0}", ContentStream.Length);
             tempWriter.WriteLine();
+            tempWriter.Flush();
         }
     }
 }

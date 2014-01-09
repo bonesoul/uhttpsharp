@@ -51,17 +51,17 @@ namespace uhttpsharp.Handlers
                 return MimeTypes[extension];
             return DefaultMimeType;
         }
-        public async Task<IHttpResponse> Handle(IHttpRequest httpRequest, System.Func<Task<IHttpResponse>> next)
+        public async Task Handle(IHttpContext context, System.Func<Task> next)
         {
-            var requestPath = httpRequest.Uri.OriginalString.TrimStart('/');
+            var requestPath = context.Request.Uri.OriginalString.TrimStart('/');
             
             var httpRoot = Path.GetFullPath(HttpRootDirectory ?? ".");
             var path = Path.GetFullPath(Path.Combine(httpRoot, requestPath));
             
             if (!File.Exists(path))
-                return await next();
+                await next();
 
-            return new HttpResponse(GetContentType(path), File.OpenRead(path));
+            context.Response = new HttpResponse(GetContentType(path), File.OpenRead(path));
         }
     }
 }

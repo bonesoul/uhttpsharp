@@ -33,19 +33,19 @@ namespace uhttpsharp.Handlers
             return this;
         }
 
-        public Task<IHttpResponse> Handle(IHttpRequest request, Func<Task<IHttpResponse>> nextHandler)
+        public Task Handle(IHttpContext context, Func<Task> nextHandler)
         {
             string function = string.Empty;
 
-            if (request.RequestParameters.Length > 0)
+            if (context.Request.RequestParameters.Length > 0)
             {
-                function = request.RequestParameters[0];
+                function = context.Request.RequestParameters[0];
             }
 
             IHttpRequestHandler value;
             if (_handlers.TryGetValue(function, out value))
             {
-                return value.Handle(request, nextHandler);
+                return value.Handle(context, nextHandler);
             }
             
 

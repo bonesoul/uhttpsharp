@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System;
 using System.Threading.Tasks;
 using uhttpsharp;
 
@@ -24,9 +25,11 @@ namespace uhttpsharpdemo.Handlers
     public class AboutHandler : IHttpRequestHandler
     {
 
-        public Task<IHttpResponse> Handle(IHttpRequest httpRequest, System.Func<Task<IHttpResponse>> next)
+        public Task Handle(IHttpContext context, Func<Task> next)
         {
-            return Task.FromResult<IHttpResponse>(HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Sample http-request-handler"));
+            context.Response = HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Sample http-request-handler");
+
+            return Task.Factory.GetCompleted();
         }
     }
 }

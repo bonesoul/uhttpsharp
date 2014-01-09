@@ -17,6 +17,7 @@
  */
 
 using System;
+using System.Net.Cache;
 using System.Text;
 using System.Threading.Tasks;
 using uhttpsharp;
@@ -25,16 +26,18 @@ namespace uhttpsharpdemo.Handlers
 {
     public class IndexHandler : IHttpRequestHandler
     {
-        private byte[] _contents;
+        private readonly HttpResponse _httpResponse;
 
         public IndexHandler()
         {
-            _contents = Encoding.UTF8.GetBytes("Welcome to the Index. ☺");
+            byte[] contents = Encoding.UTF8.GetBytes("Welcome to the Index. ☺");
+            _httpResponse = new HttpResponse(HttpResponseCode.Ok, contents);
         }
 
-        public Task<IHttpResponse> Handle(IHttpRequest httpRequest, Func<Task<IHttpResponse>> next)
+        public Task Handle(IHttpContext context, Func<Task> next)
         {
-            return Task.FromResult<IHttpResponse>(new HttpResponse(HttpResponseCode.Ok, _contents));
+            context.Response = _httpResponse;
+            return Task.Factory.GetCompleted();
         }
     }
 }
