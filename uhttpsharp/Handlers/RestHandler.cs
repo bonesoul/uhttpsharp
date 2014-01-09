@@ -67,11 +67,11 @@ namespace uhttpsharp.Handlers
             Func<IRestController, IHttpRequest, Task<HttpResponse>> handler;
             if (RestCallHandlers.TryGetValue(call, out handler))
             {
-                var value = await handler(_controller, httpRequest);
+                var value = await handler(_controller, httpRequest).ConfigureAwait(false);
                 return value;
             }
 
-            return await next();
+            return await next().ConfigureAwait(false);
         }
     }
 
