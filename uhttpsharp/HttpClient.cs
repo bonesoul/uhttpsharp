@@ -31,6 +31,7 @@ namespace uhttpsharp
 {
     internal sealed class HttpClient
     {
+        private const string CrLf = "\r\n";
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private readonly IClient _client;
@@ -45,11 +46,11 @@ namespace uhttpsharp
             _remoteEndPoint = client.RemoteEndPoint;
             _client = client;
             _requestHandlers = requestHandlers;
-            _requestProvider = requestProvider;
+            _requestProvider = requestProvider;            
 
             var bufferedStream = new BufferedStream(_client.Stream);
-            
-            _outputStream = new StreamWriter(bufferedStream) {NewLine = "\r\n"};
+
+            _outputStream = new StreamWriter(bufferedStream) { NewLine = CrLf };
             _inputStream = new StreamReader(bufferedStream);
 
             Logger.InfoFormat("Got Client {0}", _remoteEndPoint);
