@@ -2,6 +2,19 @@
 
 A very lightweight & simple embedded http server for c# 
 
+Master | Provider
+______ | ________
+[![Build Status][AppVeyorImgMaster]][AppVeyorLinkMaster] | Windows CI Provided By [AppVeyor][]
+[![Build Status][MonoImgMaster]][MonoLinkMaster] | Mono CI Provided by [travis-ci][] 
+
+[MonoImgMaster]:https://travis-ci.org/shanielh/uHttpSharp.png?branch=master
+[MonoLinkMaster]:https://travis-ci.org/shanielh/uHttpSharp
+[AppVeyorLinkMaster]:https://ci.appveyor.com/project/uhttpsharp
+[AppVeyorImgMaster]:https://ci.appveyor.com/api/projects/status?id=1schhjbpx7oomrx7
+
+[travis-ci]:https://travis-ci.org/
+[AppVeyor]:http://www.appveyor.com/
+
 Usage : 
 
 	using (var httpServer = new HttpServer(new HttpRequestProvider()))
