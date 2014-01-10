@@ -3,7 +3,7 @@
 A very lightweight & simple embedded http server for c# 
 
 Master | Provider
-______ | ________
+------ | --------
 [![Build Status][AppVeyorImgMaster]][AppVeyorLinkMaster] | Windows CI Provided By [AppVeyor][]
 [![Build Status][MonoImgMaster]][MonoLinkMaster] | Mono CI Provided by [travis-ci][] 
 
