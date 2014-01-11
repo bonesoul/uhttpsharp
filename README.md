@@ -1,4 +1,4 @@
-# µHttpSharp
+# ï¿½HttpSharp
 
 A very lightweight & simple embedded http server for c# 
 
@@ -54,12 +54,13 @@ Usage :
 More modifications will be made to make it more "user friendly" out of the box :
 
 * [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) controllers
+* Caching support
 * NuGet package
 * ~~Ssl Support~~ (Done!)
 
 ## Performance
 
-µHttpSharp manages to handle **13000 requests a sec** (With Keep-Alive support) on core i5 machine, cpu goes to 27%, memory consumption and number of threads is stable.
+ï¿½HttpSharp manages to handle **13000 requests a sec** (With Keep-Alive support) on core i5 machine, cpu goes to 27%, memory consumption and number of threads is stable.
 
 	ab -n 10000 -c 50 -k -s 2 http://localhost:8000/
 	
