@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 
 namespace uhttpsharp.Headers
 {
@@ -29,6 +30,18 @@ namespace uhttpsharp.Headers
             T value;
             headers.TryGetByName(name, out value);
             return value;
+        }
+
+        public static string ToUriData(this IHttpHeaders headers)
+        {
+            var builder = new StringBuilder();
+
+            foreach (var header in headers)
+            {
+                builder.AppendFormat("{0}={1}&", Uri.EscapeDataString(header.Key), Uri.EscapeDataString(header.Value));
+            }
+
+            return builder.ToString(0, builder.Length - 1);
         }
     }
 }

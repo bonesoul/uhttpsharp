@@ -19,12 +19,14 @@
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using uhttpsharp.Headers;
 
 namespace uhttpsharp
 {
+    [DebuggerDisplay("{Method} {OriginalUri,nq}")]
     internal class HttpRequest : IHttpRequest
     {
         private readonly IHttpHeaders _headers;
@@ -79,6 +81,20 @@ namespace uhttpsharp
         public IHttpHeaders QueryString
         {
             get { return _queryString; }
+        }
+
+        internal string OriginalUri
+        {
+            get
+            {
+                if (QueryString == null)
+                {
+                    return Uri.OriginalString;    
+                }
+
+                return Uri.OriginalString + "?" + QueryString.ToUriData();
+
+            }
         }
     }
 
