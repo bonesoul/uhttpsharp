@@ -38,7 +38,7 @@ namespace uhttpsharpdemo
 
             using (var httpServer = new HttpServer(new HttpRequestProvider()))
             {
-                httpServer.Use(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 80)));
+                httpServer.Use(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 82)));
                 //httpServer.Use(new ListenerSslDecorator(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 443)), serverCertificate));
 
                 httpServer.Use(new ExceptionHandler());

@@ -10,7 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EA15AFF9-2029-4D23-8F0C-FD0476394B0B}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
-		uhttpsharp\uhttpsharp.nuspec = uhttpsharp\uhttpsharp.nuspec
+		uhttpsharp.dll.nuspec = uhttpsharp.dll.nuspec
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "uhttpsharp.Tests", "uhttpsharp.Tests\uhttpsharp.Tests.csproj", "{41C9BDAC-21BE-4C50-933D-9E047F767E63}"

@@ -17,11 +17,11 @@
  */
 
 using System;
+using System.CodeDom;
+using System.Collections;
 using System.Collections.Generic;
-using System.Data.Odbc;
 using System.IO;
-using System.Runtime.Remoting.Messaging;
-using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace uhttpsharp
@@ -33,14 +33,18 @@ namespace uhttpsharp
         private readonly string _protocol;
         private readonly Uri _uri;
         private readonly string[] _requestParameters;
+        private readonly IHttpHeaders _queryString;
+        private readonly IHttpHeaders _post;
 
-        public HttpRequestV2(IHttpHeaders headers, HttpMethods method, string protocol, Uri uri, string[] requestParameters)
+        public HttpRequestV2(IHttpHeaders headers, HttpMethods method, string protocol, Uri uri, string[] requestParameters, IHttpHeaders queryString, IHttpHeaders post)
         {
             _headers = headers;
             _method = method;
             _protocol = protocol;
             _uri = uri;
             _requestParameters = requestParameters;
+            _queryString = queryString;
+            _post = post;
         }
 
         public IHttpHeaders Headers
@@ -67,6 +71,16 @@ namespace uhttpsharp
         {
             get { return _requestParameters; }
         }
+
+        public IHttpHeaders Post
+        {
+            get { return _post; }
+        }
+
+        public IHttpHeaders QueryString
+        {
+            get { return _queryString; }
+        }
     }
 
     public interface IHttpRequest
@@ -81,12 +95,48 @@ namespace uhttpsharp
 
         string[] RequestParameters { get; }
 
+        IHttpHeaders Post { get; }
 
+        IHttpHeaders QueryString { get; }
+
+
+    }
+
+
+    public class EmptyHttpHeaders : IHttpHeaders
+    {
+        public static readonly IHttpHeaders Empty = new EmptyHttpHeaders();
+        
+        private static readonly IEnumerable<KeyValuePair<string, string>> EmptyKeyValuePairs = new KeyValuePair<string, string>[0];
+
+        private EmptyHttpHeaders()
+        {
+
+        }
+
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+        {
+            return EmptyKeyValuePairs.GetEnumerator();
+        }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return EmptyKeyValuePairs.GetEnumerator();
+        }
+        public string GetByName(string name)
+        {
+            throw new ArgumentException("EmptyHttpHeaders does not contain any header");
+        }
+        public bool TryGetByName(string name, out string value)
+        {
+            value = null;
+            return false;
+        }
     }
 
     public class HttpHeaders : IHttpHeaders
     {
         private readonly IDictionary<string, string> _values;
+
         public HttpHeaders(IDictionary<string, string> values)
         {
             _values = values;
@@ -100,6 +150,26 @@ namespace uhttpsharp
         {
             return _values.TryGetValue(name, out value);
         }
+
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+        {
+            return _values.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public static async Task<IHttpHeaders> FromPost(StreamReader reader, int postContentLength)
+        {
+            byte[] buffer = new byte[postContentLength];
+            var readBytes = await reader.BaseStream.ReadAsync(buffer, 0, postContentLength);
+
+            string body = Encoding.UTF8.GetString(buffer, 0, readBytes);
+
+            return new QueryStringHttpHeaders(body);
+        }
     }
 
     public static class HttpHeadersExtensions
@@ -111,7 +181,7 @@ namespace uhttpsharp
         }
     }
 
-    public interface IHttpHeaders
+    public interface IHttpHeaders : IEnumerable<KeyValuePair<string, string>>
     {
 
         string GetByName(string name);
@@ -140,7 +210,7 @@ namespace uhttpsharp
         {
             // parse the http request
             var request = await streamReader.ReadLineAsync().ConfigureAwait(false);
-            
+
             if (request == null)
                 return null;
 
@@ -153,20 +223,55 @@ namespace uhttpsharp
 
             var httpMethod = HttpMethodProvider.Default.Provide(tokens[0]);
             var httpProtocol = tokens[2];
-            var uri = new Uri(tokens[1], UriKind.Relative);
-             
-            var headers = new Dictionary<string, string>();
+
+            var url = tokens[1];
+            var queryString = GetQueryStringData(ref url);
+            var uri = new Uri(url, UriKind.Relative);
+
+            var headers = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
             // get the headers
             string line;
-            while ((line = await streamReader.ReadLineAsync().ConfigureAwait(false)) != null)
-            {
-                if (line.Equals(string.Empty)) break;
+            while (!string.IsNullOrEmpty((line = await streamReader.ReadLineAsync().ConfigureAwait(false))))
+            { 
                 var headerKvp = SplitHeader(line);
                 headers.Add(headerKvp.Key, headerKvp.Value);
             }
 
-            return new HttpRequestV2(new HttpHeaders(headers), httpMethod, httpProtocol, uri, uri.OriginalString.Split(Separators, StringSplitOptions.RemoveEmptyEntries));
+            IHttpHeaders post = await GetPostData(streamReader, headers);
+            
+            return new HttpRequestV2(new HttpHeaders(headers), httpMethod, httpProtocol, uri,
+                uri.OriginalString.Split(Separators, StringSplitOptions.RemoveEmptyEntries), queryString, post);
+        }
+        private static IHttpHeaders GetQueryStringData(ref string url)
+        {
+            var queryStringIndex = url.IndexOf('?');
+            IHttpHeaders queryString;
+            if (queryStringIndex != -1)
+            {
+                queryString = new QueryStringHttpHeaders(url.Substring(queryStringIndex + 1));
+                url = url.Substring(0, queryStringIndex);
+            }
+            else
+            {
+                queryString = EmptyHttpHeaders.Empty;
+            }
+            return queryString;
+        }
+
+        private static async Task<IHttpHeaders> GetPostData(StreamReader streamReader, Dictionary<string, string> headers)
+        {
+            string postContentLength;
+            IHttpHeaders post;
+            if (headers.TryGetValue("content-length", out postContentLength))
+            {
+                post = await HttpHeaders.FromPost(streamReader, int.Parse(postContentLength));
+            }
+            else
+            {
+                post = EmptyHttpHeaders.Empty;
+            }
+            return post;
         }
 
         private KeyValuePair<string, string> SplitHeader(string header)
@@ -174,7 +279,46 @@ namespace uhttpsharp
             var index = header.IndexOf(": ", StringComparison.InvariantCulture);
             return new KeyValuePair<string, string>(header.Substring(0, index), header.Substring(index + 2).TrimStart(' '));
         }
-        
+
+    }
+
+    public class QueryStringHttpHeaders : IHttpHeaders
+    {
+        private readonly HttpHeaders _child;
+        private static readonly char[] Seperators = {'&', '='};
+
+        public QueryStringHttpHeaders(string query)
+        {
+            var splittedKeyValues = query.Split(Seperators, StringSplitOptions.RemoveEmptyEntries);
+            var values = new Dictionary<string, string>(splittedKeyValues.Length / 2, StringComparer.InvariantCultureIgnoreCase);
+
+            for (int i = 0; i < splittedKeyValues.Length; i += 2)
+            {
+                var key = Uri.UnescapeDataString(splittedKeyValues[i]);
+                var value = Uri.UnescapeDataString(splittedKeyValues[i + 1]).Replace('+', ' ');
+
+                values[key] = value;
+            }
+
+            _child = new HttpHeaders(values);
+        }
+
+        public string GetByName(string name)
+        {
+            return _child.GetByName(name);
+        }
+        public bool TryGetByName(string name, out string value)
+        {
+            return _child.TryGetByName(name, out value);
+        }
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+        {
+            return _child.GetEnumerator();
+        }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 
 
@@ -182,7 +326,7 @@ namespace uhttpsharp
     {
         private readonly string[] _params;
 
-        private static readonly char[] Separators = {'/'};
+        private static readonly char[] Separators = { '/' };
 
         public HttpRequestParameters(Uri uri)
         {
