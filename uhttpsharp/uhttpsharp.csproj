@@ -63,6 +63,7 @@
     <Compile Include="Handlers\RestHandler.cs" />
     <Compile Include="Headers\EmptyHttpHeaders.cs" />
     <Compile Include="Headers\HttpHeaders.cs" />
+    <Compile Include="Headers\HttpHeadersDebuggerProxy.cs" />
     <Compile Include="Headers\HttpHeadersExtensions.cs" />
     <Compile Include="Headers\IHttpHeaders.cs" />
     <Compile Include="Headers\QueryStringHttpHeaders.cs" />
