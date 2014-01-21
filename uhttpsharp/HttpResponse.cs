@@ -29,6 +29,8 @@ namespace uhttpsharp
     {
         Task WriteResponse(StreamWriter writer);
 
+        Task WriteHeaders(StreamWriter writer);
+
         bool CloseConnection { get; }
     }
 
@@ -71,7 +73,7 @@ namespace uhttpsharp
             ContentStream = contentStream;
             _closeConnection = !keepAliveConnection;
 
-            WriteHeaders(new StreamWriter(_headerStream));
+            CacheHeaders(new StreamWriter(_headerStream));
         }
         public HttpResponse(HttpResponseCode code, byte[] contentStream, bool closeConnection) 
             : this (code, "text/html; charset=utf-8", new MemoryStream(contentStream), closeConnection)
@@ -96,10 +98,6 @@ namespace uhttpsharp
         }
         public async Task WriteResponse(StreamWriter writer)
         {
-
-            _headerStream.Position = 0;
-            await _headerStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
-            
             ContentStream.Position = 0;
             await ContentStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
             await writer.BaseStream.FlushAsync();
@@ -110,15 +108,23 @@ namespace uhttpsharp
             get { return _closeConnection; }
         }
 
-        private void WriteHeaders(StreamWriter tempWriter)
+        private void CacheHeaders(StreamWriter tempWriter)
         {
             tempWriter.WriteLine("{0} {1} {2}", Protocol, (int)Code, ResponseTexts[(int)Code]);
             tempWriter.WriteLine("Date: {0}", DateTime.UtcNow.ToString("R"));
             tempWriter.WriteLine("Connection: {0}", _closeConnection ? "Close" : "Keep-Alive");
             tempWriter.WriteLine("Content-Type: {0}", ContentType);
             tempWriter.WriteLine("Content-Length: {0}", ContentStream.Length);
-            tempWriter.WriteLine();
+            //tempWriter.WriteLine();
             tempWriter.Flush();
+        }
+
+
+        public async Task WriteHeaders(StreamWriter writer)
+        {
+            _headerStream.Position = 0;
+            await _headerStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
+            
         }
     }
 }

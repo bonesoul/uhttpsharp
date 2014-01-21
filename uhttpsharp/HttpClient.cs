@@ -16,10 +16,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System.Text;
+using log4net;
 using System.Net;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
-using log4net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,12 +27,15 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using uhttpsharp.Clients;
 using uhttpsharp.Headers;
+using uhttpsharp.RequestProviders;
 
 namespace uhttpsharp
 {
     internal sealed class HttpClient
     {
         private const string CrLf = "\r\n";
+        private static readonly byte[] CrLfBuffer = Encoding.UTF8.GetBytes(CrLf);
+
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private readonly IClient _client;
@@ -82,7 +85,23 @@ namespace uhttpsharp
 
                         if (response != null)
                         {
+                            // Headers
+                            await response.WriteHeaders(_outputStream).ConfigureAwait(false);
+
+                            // Cookies
+                            if (context.Cookies.Touched)
+                            {
+                                await _outputStream.WriteAsync(context.Cookies.ToCookieData())
+                                    .ConfigureAwait(false);
+                                await _outputStream.FlushAsync().ConfigureAwait(false);
+                            }
+
+                            // Empty Line
+                            await _outputStream.BaseStream.WriteAsync(CrLfBuffer, 0, CrLfBuffer.Length).ConfigureAwait(false);
+
+                            // Body
                             await response.WriteResponse(_outputStream).ConfigureAwait(false);
+
                             if (!request.Headers.KeepAliveConnection() || response.CloseConnection)
                             {
                                 _client.Close();
@@ -121,27 +140,6 @@ namespace uhttpsharp
             }
 
             return () => _requestHandlers[index].Handle(context, BuildHandlers(context, index + 1));
-        }
-    }
-
-    internal class HttpContext : IHttpContext
-    {
-        private readonly IHttpRequest _request;
-        private IHttpResponse _response;
-        public HttpContext(IHttpRequest request)
-        {
-            _request = request;
-        }
-
-        public IHttpRequest Request
-        {
-            get { return _request; }
-        }
-
-        public IHttpResponse Response
-        {
-            get { return _response; }
-            set { _response = value; }
         }
     }
 }

@@ -17,11 +17,17 @@
  */
 
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using uhttpsharp;
 using uhttpsharp.Handlers;
+using uhttpsharp.Headers;
 using uhttpsharp.Listeners;
+using uhttpsharp.RequestProviders;
 using uhttpsharpdemo.Handlers;
 
 namespace uhttpsharpdemo
@@ -39,6 +45,7 @@ namespace uhttpsharpdemo
                 httpServer.Use(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 82)));
                 //httpServer.Use(new ListenerSslDecorator(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 443)), serverCertificate));
 
+                httpServer.Use(new SessionHandler<DateTime>(() => DateTime.Now));
                 httpServer.Use(new ExceptionHandler());
                 httpServer.Use(new TimingHandler());
 
@@ -58,6 +65,70 @@ namespace uhttpsharpdemo
                 Console.ReadLine();
             }
 
+        }
+    }
+
+
+    internal class SessionHandler<TSession> : IHttpRequestHandler
+    {
+        private readonly Func<TSession> _sessionFactory;
+
+        private static readonly Random RandomGenerator = new Random();
+
+        private class SessionHolder
+        {
+            private readonly TSession _session;
+            private DateTime _lastAccessTime = DateTime.Now;
+
+            public TSession Session
+            {
+                get
+                {
+                    _lastAccessTime = DateTime.Now;
+                    return _session;
+                }
+            }
+
+            public DateTime LastAccessTime
+            {
+                get
+                {
+                    return _lastAccessTime;
+                }
+            }
+
+            public SessionHolder(TSession session)
+            {
+                _session = session;
+            }
+        }
+
+        private readonly ConcurrentDictionary<string, TSession> _sessions = new ConcurrentDictionary<string, TSession>();
+
+        public SessionHandler(Func<TSession> sessionFactory)
+        {
+            _sessionFactory = sessionFactory;
+        }
+
+        public System.Threading.Tasks.Task Handle(IHttpContext context, Func<System.Threading.Tasks.Task> next)
+        {
+
+            string sessId;
+            if (!context.Cookies.TryGetByName("SESSID", out sessId))
+            {
+                sessId = RandomGenerator.Next().ToString(CultureInfo.InvariantCulture);
+                context.Cookies.Upsert("SESSID", sessId);
+            }
+
+            var session = _sessions.GetOrAdd(sessId, CreateSession);
+
+            context.State.Session = session;
+
+            return next();
+        }
+        private TSession CreateSession(string sessionId)
+        {
+            return _sessionFactory();
         }
     }
 }

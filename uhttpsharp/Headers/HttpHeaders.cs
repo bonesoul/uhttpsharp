@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -46,6 +47,7 @@ namespace uhttpsharp.Headers
 
             return new QueryStringHttpHeaders(body);
         }
+
 
         internal int Count
         {

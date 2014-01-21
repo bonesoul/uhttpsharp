@@ -33,6 +33,17 @@ namespace uhttpsharp.Headers
             return value;
         }
 
+        public static T GetByNameOrDefault<T>(this IHttpHeaders headers, string name, T defaultValue)
+        {
+            T value;
+            if (headers.TryGetByName(name, out value))
+            {
+                return value;
+            }
+
+            return defaultValue;
+        }
+
         public static string ToUriData(this IHttpHeaders headers)
         {
             var builder = new StringBuilder();
