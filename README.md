@@ -15,7 +15,13 @@ Master | Provider
 [travis-ci]:https://travis-ci.org/
 [AppVeyor]:http://www.appveyor.com/
 
-Usage : 
+## Usage
+
+Install via NuGet Package Manager :
+
+	install-package uHttpSharp
+
+A sample for usage : 
 
 	using (var httpServer = new HttpServer(new HttpRequestProvider()))
 	{
@@ -44,19 +50,14 @@ Usage :
 		Console.ReadLine();
 	}
 	
-## Under Construction
+## Features
 
-µHttpSharp is going through heavy modifications to be more like [koa](http://koajs.com) :  
+µHttpSharp is a simple http server inspired by [koa](http://koajs.com), and has the following features :
 
-* ~~new `IHttpContext` interface (Gathers `IHttpResponse`, `IHttpRequest` and maybe even session)~~ (Done)
-* ~~new `httpServer.Use((context, next) => { next(); });` syntax~~ (Done)
+* [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) controllers
+* Ssl Support
+* Easy Chain-Of-Responsibility architecture
 
-More modifications will be made to make it more "user friendly" out of the box :
-
-* ~~[RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) controllers~~ (Done)
-* Caching support
-* NuGet package
-* ~~Ssl Support~~ (Done!)
 
 ## Performance
 
