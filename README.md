@@ -53,7 +53,7 @@ Usage :
 
 More modifications will be made to make it more "user friendly" out of the box :
 
-* [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) controllers
+* ~~[RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) controllers~~ (Done)
 * Caching support
 * NuGet package
 * ~~Ssl Support~~ (Done!)
