@@ -8,7 +8,8 @@ namespace uhttpsharp.Headers
         public static bool KeepAliveConnection(this IHttpHeaders headers)
         {
             string value;
-            return headers.TryGetByName("Connection", out value) && value.Equals("Keep-Alive", StringComparison.InvariantCultureIgnoreCase);
+            return headers.TryGetByName("connection", out value)
+                && value.Equals("Keep-Alive", StringComparison.InvariantCultureIgnoreCase);
         }
 
         public static bool TryGetByName<T>(this IHttpHeaders headers, string name, out T value)
