@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace uhttpsharp.Headers
 {
-    public class EmptyHttpHeaders : IHttpHeaders
+    [DebuggerDisplay("Empty Headers")]
+    internal class EmptyHttpHeaders : IHttpHeaders
     {
         public static readonly IHttpHeaders Empty = new EmptyHttpHeaders();
         
@@ -32,5 +34,6 @@ namespace uhttpsharp.Headers
             value = null;
             return false;
         }
+
     }
 }

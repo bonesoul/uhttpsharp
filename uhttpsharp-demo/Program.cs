@@ -17,10 +17,8 @@
  */
 
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
 using uhttpsharp;
 using uhttpsharp.Handlers;
 using uhttpsharp.Listeners;
@@ -43,7 +41,7 @@ namespace uhttpsharpdemo
 
                 httpServer.Use(new ExceptionHandler());
                 httpServer.Use(new TimingHandler());
-                
+
                 httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
                                                .With("about", new AboutHandler())
                                                .With("strings", new RestHandler<string>(new StringsRestController(), new JsonResponseProvider())));
@@ -59,7 +57,7 @@ namespace uhttpsharpdemo
                 httpServer.Start();
                 Console.ReadLine();
             }
-                
+
         }
     }
 }

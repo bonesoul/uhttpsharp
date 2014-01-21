@@ -1,13 +1,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace uhttpsharp.Headers
 {
-    public class QueryStringHttpHeaders : IHttpHeaders
+    [DebuggerDisplay("{Count} Query String Headers")]
+    [DebuggerTypeProxy(typeof(HttpHeadersDebuggerProxy))]
+    internal class QueryStringHttpHeaders : IHttpHeaders
     {
         private readonly HttpHeaders _child;
         private static readonly char[] Seperators = {'&', '='};
+
+        private readonly int _count;
 
         public QueryStringHttpHeaders(string query)
         {
@@ -22,6 +27,7 @@ namespace uhttpsharp.Headers
                 values[key] = value;
             }
 
+            _count = values.Count;
             _child = new HttpHeaders(values);
         }
 
@@ -40,6 +46,14 @@ namespace uhttpsharp.Headers
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        internal int Count
+        {
+            get
+            {
+                return _count;
+            }
         }
     }
 }

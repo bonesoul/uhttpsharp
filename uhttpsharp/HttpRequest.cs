@@ -25,7 +25,7 @@ using uhttpsharp.Headers;
 
 namespace uhttpsharp
 {
-    public class HttpRequestV2 : IHttpRequest
+    internal class HttpRequest : IHttpRequest
     {
         private readonly IHttpHeaders _headers;
         private readonly HttpMethods _method;
@@ -35,7 +35,7 @@ namespace uhttpsharp
         private readonly IHttpHeaders _queryString;
         private readonly IHttpHeaders _post;
 
-        public HttpRequestV2(IHttpHeaders headers, HttpMethods method, string protocol, Uri uri, string[] requestParameters, IHttpHeaders queryString, IHttpHeaders post)
+        public HttpRequest(IHttpHeaders headers, HttpMethods method, string protocol, Uri uri, string[] requestParameters, IHttpHeaders queryString, IHttpHeaders post)
         {
             _headers = headers;
             _method = method;
@@ -152,7 +152,7 @@ namespace uhttpsharp
             IHttpHeaders headers = new HttpHeaders(headersRaw);
             IHttpHeaders post = await GetPostData(streamReader, headers);
 
-            return new HttpRequestV2(headers, httpMethod, httpProtocol, uri,
+            return new HttpRequest(headers, httpMethod, httpProtocol, uri,
                 uri.OriginalString.Split(Separators, StringSplitOptions.RemoveEmptyEntries), queryString, post);
         }
         private static IHttpHeaders GetQueryStringData(ref string url)
