@@ -1,4 +1,4 @@
-# �HttpSharp
+﻿# µHttpSharp
 
 A very lightweight & simple embedded http server for c# 
 
