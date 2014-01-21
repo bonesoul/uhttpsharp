@@ -19,6 +19,7 @@
 using System;
 using System.Threading.Tasks;
 using uhttpsharp;
+using uhttpsharp.Headers;
 
 namespace uhttpsharpdemo.Handlers
 {

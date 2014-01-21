@@ -18,11 +18,10 @@
 
 using System;
 using System.CodeDom;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
+using uhttpsharp.Headers;
 
 namespace uhttpsharp
 {
@@ -102,94 +101,6 @@ namespace uhttpsharp
 
     }
 
-
-    public class EmptyHttpHeaders : IHttpHeaders
-    {
-        public static readonly IHttpHeaders Empty = new EmptyHttpHeaders();
-        
-        private static readonly IEnumerable<KeyValuePair<string, string>> EmptyKeyValuePairs = new KeyValuePair<string, string>[0];
-
-        private EmptyHttpHeaders()
-        {
-
-        }
-
-        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-        {
-            return EmptyKeyValuePairs.GetEnumerator();
-        }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return EmptyKeyValuePairs.GetEnumerator();
-        }
-        public string GetByName(string name)
-        {
-            throw new ArgumentException("EmptyHttpHeaders does not contain any header");
-        }
-        public bool TryGetByName(string name, out string value)
-        {
-            value = null;
-            return false;
-        }
-    }
-
-    public class HttpHeaders : IHttpHeaders
-    {
-        private readonly IDictionary<string, string> _values;
-
-        public HttpHeaders(IDictionary<string, string> values)
-        {
-            _values = values;
-        }
-
-        public string GetByName(string name)
-        {
-            return _values[name];
-        }
-        public bool TryGetByName(string name, out string value)
-        {
-            return _values.TryGetValue(name, out value);
-        }
-
-        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-        {
-            return _values.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public static async Task<IHttpHeaders> FromPost(StreamReader reader, int postContentLength)
-        {
-            byte[] buffer = new byte[postContentLength];
-            var readBytes = await reader.BaseStream.ReadAsync(buffer, 0, postContentLength);
-
-            string body = Encoding.UTF8.GetString(buffer, 0, readBytes);
-
-            return new QueryStringHttpHeaders(body);
-        }
-    }
-
-    public static class HttpHeadersExtensions
-    {
-        public static bool KeepAliveConnection(this IHttpHeaders headers)
-        {
-            string value;
-            return headers.TryGetByName("Connection", out value) && value.Equals("Keep-Alive", StringComparison.InvariantCultureIgnoreCase);
-        }
-    }
-
-    public interface IHttpHeaders : IEnumerable<KeyValuePair<string, string>>
-    {
-
-        string GetByName(string name);
-
-        bool TryGetByName(string name, out string value);
-
-    }
-
     public interface IHttpRequestProvider
     {
         /// <summary>
@@ -228,19 +139,20 @@ namespace uhttpsharp
             var queryString = GetQueryStringData(ref url);
             var uri = new Uri(url, UriKind.Relative);
 
-            var headers = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+            var headersRaw = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
             // get the headers
             string line;
             while (!string.IsNullOrEmpty((line = await streamReader.ReadLineAsync().ConfigureAwait(false))))
             { 
                 var headerKvp = SplitHeader(line);
-                headers.Add(headerKvp.Key, headerKvp.Value);
+                headersRaw.Add(headerKvp.Key, headerKvp.Value);
             }
 
+            IHttpHeaders headers = new HttpHeaders(headersRaw);
             IHttpHeaders post = await GetPostData(streamReader, headers);
-            
-            return new HttpRequestV2(new HttpHeaders(headers), httpMethod, httpProtocol, uri,
+
+            return new HttpRequestV2(headers, httpMethod, httpProtocol, uri,
                 uri.OriginalString.Split(Separators, StringSplitOptions.RemoveEmptyEntries), queryString, post);
         }
         private static IHttpHeaders GetQueryStringData(ref string url)
@@ -259,13 +171,13 @@ namespace uhttpsharp
             return queryString;
         }
 
-        private static async Task<IHttpHeaders> GetPostData(StreamReader streamReader, Dictionary<string, string> headers)
+        private static async Task<IHttpHeaders> GetPostData(StreamReader streamReader, IHttpHeaders headers)
         {
-            string postContentLength;
+            int postContentLength;
             IHttpHeaders post;
-            if (headers.TryGetValue("content-length", out postContentLength))
+            if (headers.TryGetByName("content-length", out postContentLength))
             {
-                post = await HttpHeaders.FromPost(streamReader, int.Parse(postContentLength));
+                post = await HttpHeaders.FromPost(streamReader, postContentLength);
             }
             else
             {
@@ -281,46 +193,6 @@ namespace uhttpsharp
         }
 
     }
-
-    public class QueryStringHttpHeaders : IHttpHeaders
-    {
-        private readonly HttpHeaders _child;
-        private static readonly char[] Seperators = {'&', '='};
-
-        public QueryStringHttpHeaders(string query)
-        {
-            var splittedKeyValues = query.Split(Seperators, StringSplitOptions.RemoveEmptyEntries);
-            var values = new Dictionary<string, string>(splittedKeyValues.Length / 2, StringComparer.InvariantCultureIgnoreCase);
-
-            for (int i = 0; i < splittedKeyValues.Length; i += 2)
-            {
-                var key = Uri.UnescapeDataString(splittedKeyValues[i]);
-                var value = Uri.UnescapeDataString(splittedKeyValues[i + 1]).Replace('+', ' ');
-
-                values[key] = value;
-            }
-
-            _child = new HttpHeaders(values);
-        }
-
-        public string GetByName(string name)
-        {
-            return _child.GetByName(name);
-        }
-        public bool TryGetByName(string name, out string value)
-        {
-            return _child.TryGetByName(name, out value);
-        }
-        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-        {
-            return _child.GetEnumerator();
-        }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-    }
-
 
     public sealed class HttpRequestParameters
     {

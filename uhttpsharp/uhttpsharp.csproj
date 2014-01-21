@@ -61,6 +61,11 @@
     <Compile Include="Handlers\IRestController.cs" />
     <Compile Include="Handlers\JsonResponseProvider.cs" />
     <Compile Include="Handlers\RestHandler.cs" />
+    <Compile Include="Headers\EmptyHttpHeaders.cs" />
+    <Compile Include="Headers\HttpHeaders.cs" />
+    <Compile Include="Headers\HttpHeadersExtensions.cs" />
+    <Compile Include="Headers\IHttpHeaders.cs" />
+    <Compile Include="Headers\QueryStringHttpHeaders.cs" />
     <Compile Include="HttpClient.cs" />
     <Compile Include="HttpMethodProvider.cs" />
     <Compile Include="HttpMethodProviderCache.cs" />

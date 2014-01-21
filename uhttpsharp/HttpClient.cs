@@ -26,6 +26,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using uhttpsharp.Clients;
+using uhttpsharp.Headers;
 
 namespace uhttpsharp
 {
