@@ -17,7 +17,7 @@ Master | Provider
 
 ## Usage
 
-Install via NuGet Package Manager :
+A [NuGet Package](https://www.nuget.org/packages/uHttpSharp/ "Go to µHttpSharp NuGet Package page")  is available, Install via NuGet Package Manager :
 
 	install-package uHttpSharp
 
