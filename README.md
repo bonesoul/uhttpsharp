@@ -60,7 +60,7 @@ More modifications will be made to make it more "user friendly" out of the box :
 
 ## Performance
 
-�HttpSharp manages to handle **13000 requests a sec** (With Keep-Alive support) on core i5 machine, cpu goes to 27%, memory consumption and number of threads is stable.
+µHttpSharp manages to handle **13000 requests a sec** (With Keep-Alive support) on core i5 machine, cpu goes to 27%, memory consumption and number of threads is stable.
 
 	ab -n 10000 -c 50 -k -s 2 http://localhost:8000/
 	
@@ -122,6 +122,3 @@ More modifications will be made to make it more "user friendly" out of the box :
 * Use it
 * Open Issues
 * Fork and Push requests
-
-
-
