@@ -1,42 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
 using uhttpsharp;
-using uhttpsharp.Handlers;
 
 namespace uhttpsharpdemo
 {
-
-    class SomeRestControllerOfT : IRestController<string>
-    {
-        public Task<IEnumerable<string>> Get(IHttpRequest request)
-        {
-            return Task.FromResult(new[] {"1", "2"}.AsEnumerable());
-        }
-        public Task<string> GetItem(IHttpRequest request)
-        {
-            throw new NotImplementedException();
-        }
-        public Task<string> Create(IHttpRequest request)
-        {
-            throw new NotImplementedException();
-        }
-        public Task<string> Upsert(IHttpRequest request)
-        {
-            throw new NotImplementedException();
-        }
-        public Task<string> Delete(IHttpRequest request)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class SomeRestController : IRestController
+    class SomeRestController
     {
 
         IDictionary<int, string> _strings = new Dictionary<int, string>() { { 1 , "Hahaha"}};

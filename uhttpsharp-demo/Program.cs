@@ -41,11 +41,12 @@ namespace uhttpsharpdemo
                 httpServer.Use(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 80)));
                 //httpServer.Use(new ListenerSslDecorator(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 443)), serverCertificate));
 
+                httpServer.Use(new ExceptionHandler());
                 httpServer.Use(new TimingHandler());
                 
                 httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
                                                .With("about", new AboutHandler())
-                                               .With("strings", new RestHandler(new JsonRestControllerAdapter<string>(new SomeRestControllerOfT()))));
+                                               .With("strings", new RestHandler<string>(new StringsRestController(), new JsonResponseProvider())));
 
                 httpServer.Use(new FileHandler());
                 httpServer.Use(new ErrorHandler());

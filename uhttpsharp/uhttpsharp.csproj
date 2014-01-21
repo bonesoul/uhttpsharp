@@ -57,8 +57,9 @@
     <Compile Include="Clients\ClientSslDecoerator.cs" />
     <Compile Include="Clients\IClient.cs" />
     <Compile Include="Handlers\FileHandler.cs" />
+    <Compile Include="Handlers\IResponseProvider.cs" />
     <Compile Include="Handlers\IRestController.cs" />
-    <Compile Include="Handlers\IRestControllerOfT.cs" />
+    <Compile Include="Handlers\JsonResponseProvider.cs" />
     <Compile Include="Handlers\RestHandler.cs" />
     <Compile Include="HttpClient.cs" />
     <Compile Include="HttpMethodProvider.cs" />

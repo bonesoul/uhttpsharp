@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mime;
 using System.Threading.Tasks;
 
 namespace uhttpsharp.Handlers
 {
-    public class RestHandler : IHttpRequestHandler
+    public class RestHandler<T> : IHttpRequestHandler
     {
 
         private struct RestCall
@@ -43,21 +41,23 @@ namespace uhttpsharp.Handlers
             }
         }
 
-        private static readonly IDictionary<RestCall, Func<IRestController, IHttpRequest, Task<HttpResponse>>> RestCallHandlers = new Dictionary<RestCall, Func<IRestController, IHttpRequest, Task<HttpResponse>>>();
+        private static readonly IDictionary<RestCall, Func<IRestController<T>, IHttpRequest, Task<object>>> RestCallHandlers = new Dictionary<RestCall, Func<IRestController<T>, IHttpRequest, Task<object>>>();
 
         static RestHandler()
         {
-            RestCallHandlers.Add(RestCall.Create(HttpMethods.Get, false), (c, r) => c.Get(r));
-            RestCallHandlers.Add(RestCall.Create(HttpMethods.Get, true), (c, r) => c.GetItem(r));
-            RestCallHandlers.Add(RestCall.Create(HttpMethods.Post, false), (c, r) => c.Create(r));
-            RestCallHandlers.Add(RestCall.Create(HttpMethods.Put, true), (c, r) => c.Upsert(r));
-            RestCallHandlers.Add(RestCall.Create(HttpMethods.Delete, true), (c, r) => c.Delete(r));
+            RestCallHandlers.Add(RestCall.Create(HttpMethods.Get, false), async (c, r) => (object) (await c.Get(r)));
+            RestCallHandlers.Add(RestCall.Create(HttpMethods.Get, true), async (c, r) => (object) (await c.GetItem(r)));
+            RestCallHandlers.Add(RestCall.Create(HttpMethods.Post, false), async (c, r) => (object) (await c.Create(r)));
+            RestCallHandlers.Add(RestCall.Create(HttpMethods.Put, true), async (c, r) => (object) (await c.Upsert(r)));
+            RestCallHandlers.Add(RestCall.Create(HttpMethods.Delete, true), async (c, r) => (object) (await c.Delete(r)));
         }
 
-        private readonly IRestController _controller;
-        public RestHandler(IRestController controller)
+        private readonly IRestController<T> _controller;
+        private readonly IResponseProvider _responseProvider;
+        public RestHandler(IRestController<T> controller, IResponseProvider responseProvider)
         {
             _controller = controller;
+            _responseProvider = responseProvider;
         }
 
         public async Task Handle(IHttpContext httpContext, Func<Task> next)
@@ -66,11 +66,11 @@ namespace uhttpsharp.Handlers
 
             var call = new RestCall(httpRequest.Method, httpRequest.RequestParameters.Length > 1);
 
-            Func<IRestController, IHttpRequest, Task<HttpResponse>> handler;
+            Func<IRestController<T>, IHttpRequest, Task<object>> handler;
             if (RestCallHandlers.TryGetValue(call, out handler))
             {
                 var value = await handler(_controller, httpRequest).ConfigureAwait(false);
-                httpContext.Response = value;
+                httpContext.Response = await _responseProvider.Provide(value);
 
                 return;
             }

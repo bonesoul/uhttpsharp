@@ -3,43 +3,41 @@ using System.Threading.Tasks;
 
 namespace uhttpsharp.Handlers
 {
-    public interface IRestController
+    public interface IRestController<T>
     {
-
         /// <summary>
         /// Returns a list of object that found in the collection
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HttpResponse> Get(IHttpRequest request);
+        Task<IEnumerable<T>> Get(IHttpRequest request);
 
         /// <summary>
         /// Returns an item from the collection
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HttpResponse> GetItem(IHttpRequest request);
+        Task<T> GetItem(IHttpRequest request);
 
         /// <summary>
         /// Creates a new entry in the collection - new uri is returned
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HttpResponse> Create(IHttpRequest request);
+        Task<T> Create(IHttpRequest request);
 
         /// <summary>
         /// Updates an entry in the collection
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HttpResponse> Upsert(IHttpRequest request);
+        Task<T> Upsert(IHttpRequest request);
 
         /// <summary>
         /// Removes an entry from the collection
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HttpResponse> Delete(IHttpRequest request);
-
+        Task<T> Delete(IHttpRequest request);
     }
 }
