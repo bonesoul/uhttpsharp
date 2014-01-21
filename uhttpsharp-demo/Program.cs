@@ -34,17 +34,18 @@ namespace uhttpsharpdemo
         {
             log4net.Config.XmlConfigurator.Configure();
 
-            var serverCertificate = X509Certificate.CreateFromCertFile(@"TempCert.cer");
+            //var serverCertificate = X509Certificate.CreateFromCertFile(@"TempCert.cer");
 
             using (var httpServer = new HttpServer(new HttpRequestProvider()))
             {
                 httpServer.Use(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 80)));
-                httpServer.Use(new ListenerSslDecorator(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 443)), serverCertificate));
+                //httpServer.Use(new ListenerSslDecorator(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 443)), serverCertificate));
 
                 httpServer.Use(new TimingHandler());
                 
                 httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
-                                               .With("about", new AboutHandler()));
+                                               .With("about", new AboutHandler())
+                                               .With("strings", new RestHandler(new JsonRestControllerAdapter<string>(new SomeRestControllerOfT()))));
 
                 httpServer.Use(new FileHandler());
                 httpServer.Use(new ErrorHandler());

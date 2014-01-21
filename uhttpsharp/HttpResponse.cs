@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
+using uhttpsharp;
 
 namespace uhttpsharp
 {
@@ -61,7 +62,7 @@ namespace uhttpsharp
             : this(HttpResponseCode.Ok, contentType, contentStream, closeConnection)
         {
         }
-        private HttpResponse(HttpResponseCode code, string contentType, Stream contentStream, bool keepAliveConnection)
+        public HttpResponse(HttpResponseCode code, string contentType, Stream contentStream, bool keepAliveConnection)
         {
             Protocol = "HTTP/1.1";
             ContentType = contentType;
@@ -85,7 +86,7 @@ namespace uhttpsharp
                     "<html><head><title>{0}</title></head><body><h1>{0}</h1><hr>{1}</body></html>",
                     message, body), keepAliveConnection);
         }
-        private static Stream StringToStream(string content)
+        private static MemoryStream StringToStream(string content)
         {
             var stream = new MemoryStream();
             var writer = new StreamWriter(stream);
@@ -95,6 +96,7 @@ namespace uhttpsharp
         }
         public async Task WriteResponse(StreamWriter writer)
         {
+
             _headerStream.Position = 0;
             await _headerStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
             

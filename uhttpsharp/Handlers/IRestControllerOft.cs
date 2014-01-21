@@ -64,7 +64,7 @@ namespace uhttpsharp.Handlers
         }
         private static Task<HttpResponse> GenerateNotFonudResponse()
         {
-            return Task.FromResult(new HttpResponse(HttpResponseCode.NotFound, string.Empty));
+            return Task.FromResult(new HttpResponse(HttpResponseCode.NotFound, string.Empty, false));
         }
         private Task<HttpResponse> CreateHttpRequest(IEnumerable<T> value)
         {
@@ -89,7 +89,7 @@ namespace uhttpsharp.Handlers
             var serializer = new JsonSerializer();
             serializer.Serialize(writer, value);
             writer.Flush();
-            return Task.FromResult(new HttpResponse(HttpResponseCode.Ok, "application/json; charset=utf-8", memoryStream));
+            return Task.FromResult(new HttpResponse(HttpResponseCode.Ok, "application/json; charset=utf-8", memoryStream, true));
         }
 
         public async Task<HttpResponse> Get(IHttpRequest request)

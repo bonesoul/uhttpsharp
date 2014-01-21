@@ -60,18 +60,22 @@ namespace uhttpsharp.Handlers
             _controller = controller;
         }
 
-        public async Task<HttpResponse> Handle(IHttpRequest httpRequest, Func<Task<HttpResponse>> next)
+        public async Task Handle(IHttpContext httpContext, Func<Task> next)
         {
+            IHttpRequest httpRequest = httpContext.Request;
+
             var call = new RestCall(httpRequest.Method, httpRequest.RequestParameters.Length > 1);
 
             Func<IRestController, IHttpRequest, Task<HttpResponse>> handler;
             if (RestCallHandlers.TryGetValue(call, out handler))
             {
                 var value = await handler(_controller, httpRequest).ConfigureAwait(false);
-                return value;
+                httpContext.Response = value;
+
+                return;
             }
 
-            return await next().ConfigureAwait(false);
+            await next().ConfigureAwait(false);
         }
     }
 

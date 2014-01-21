@@ -48,7 +48,7 @@ namespace uhttpsharpdemo
 
             JsonSerializer.Create().Serialize(writer, _strings);
             writer.Flush();
-            return Task.FromResult(new HttpResponse(HttpResponseCode.Ok, "application/json; charset=utf-8", memoryStream));
+            return Task.FromResult(new HttpResponse(HttpResponseCode.Ok, "application/json; charset=utf-8", memoryStream, true));
         }
 
         public Task<uhttpsharp.HttpResponse> GetItem(uhttpsharp.IHttpRequest request)
