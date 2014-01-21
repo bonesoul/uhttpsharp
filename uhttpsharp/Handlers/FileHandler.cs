@@ -60,12 +60,11 @@ namespace uhttpsharp.Handlers
 
             if (!File.Exists(path))
             {
-                await next();
+                await next().ConfigureAwait(false);
 
                 return;
             }
                 
-
             context.Response = new HttpResponse(GetContentType(path), File.OpenRead(path), context.Request.Headers.KeepAliveConnection());
         }
     }

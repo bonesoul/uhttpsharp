@@ -101,6 +101,12 @@ namespace uhttpsharp
             {
                 // Socket exceptions on read will be re-thrown as IOException by BufferedStream
             }
+            catch (Exception e)
+            {
+                // Hate people who make bad calls.
+                Logger.Warn(string.Format("Error while serving : {0} : {1}{2}", _remoteEndPoint, Environment.NewLine, e));
+                _client.Close();
+            }
 
             Logger.InfoFormat("Lost Client {0}", _remoteEndPoint);
         }
