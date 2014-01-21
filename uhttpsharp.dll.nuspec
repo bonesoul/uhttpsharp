@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package>
+	<metadata>
+		<id>uHttpSharp</id>
+		<version>0.1.1</version>
+		<title>uHttpSharp</title>
+		<authors>Shani Elharrar, Joe White, Hüseyin Uslu</authors>
+		<owners>Shani Elharrar, Joe White, Hüseyin Uslu</owners>
+		<licenseUrl>https://raw.github.com/shanielh/uHttpSharp/master/LICENSE.txt</licenseUrl>
+		<projectUrl>https://github.com/shanielh/uHttpSharp</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>A very lightweight &amp; simple embedded http server for c#</description>
+		<releaseNotes>Initial NuGet Release.</releaseNotes>
+		<copyright>Copyright 2014</copyright>
+		<tags>http server microframeworks</tags>
+		<dependencies>
+			<dependency id="Newtonsoft.Json" version="5.0.8" />
+			<dependency id="log4net" version="1.0.0" />
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="uhttpsharp/bin/debug/uHttpSharp.dll" target="lib\net40" />
+	</files>
+</package>
