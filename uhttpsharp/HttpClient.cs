@@ -39,8 +39,7 @@ namespace uhttpsharp
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private readonly IClient _client;
-        private readonly StreamReader _inputStream;
-        private readonly StreamWriter _outputStream;
+        private readonly Stream _stream;
         private readonly IList<IHttpRequestHandler> _requestHandlers;
         private readonly IHttpRequestProvider _requestProvider;
         private readonly EndPoint _remoteEndPoint;
@@ -52,10 +51,7 @@ namespace uhttpsharp
             _requestHandlers = requestHandlers;
             _requestProvider = requestProvider;            
 
-            var bufferedStream = new BufferedStream(_client.Stream);
-
-            _outputStream = new StreamWriter(bufferedStream) { NewLine = CrLf };
-            _inputStream = new StreamReader(bufferedStream);
+            _stream = new BufferedStream(_client.Stream);
 
             Logger.InfoFormat("Got Client {0}", _remoteEndPoint);
 
@@ -68,7 +64,9 @@ namespace uhttpsharp
             {
                 while (_client.Connected)
                 {
-                    var request = await _requestProvider.Provide(_inputStream).ConfigureAwait(false);
+                    // TODO : Extract read and write limit to configuration.
+                    var requestStream = new LimitedStream(_stream, readLimit: 1024*1024, writeLimit: 1024*1024);
+                    var request = await _requestProvider.Provide(new StreamReader(requestStream)).ConfigureAwait(false);
 
                     if (request != null)
                     {
@@ -85,22 +83,23 @@ namespace uhttpsharp
 
                         if (response != null)
                         {
+                            var streamWriter = new StreamWriter(requestStream);
                             // Headers
-                            await response.WriteHeaders(_outputStream).ConfigureAwait(false);
+                            await response.WriteHeaders(streamWriter).ConfigureAwait(false);
 
                             // Cookies
                             if (context.Cookies.Touched)
                             {
-                                await _outputStream.WriteAsync(context.Cookies.ToCookieData())
+                                await streamWriter.WriteAsync(context.Cookies.ToCookieData())
                                     .ConfigureAwait(false);
-                                await _outputStream.FlushAsync().ConfigureAwait(false);
+                                await streamWriter.FlushAsync().ConfigureAwait(false);
                             }
 
                             // Empty Line
-                            await _outputStream.BaseStream.WriteAsync(CrLfBuffer, 0, CrLfBuffer.Length).ConfigureAwait(false);
+                            await requestStream.WriteAsync(CrLfBuffer, 0, CrLfBuffer.Length).ConfigureAwait(false);
 
                             // Body
-                            await response.WriteResponse(_outputStream).ConfigureAwait(false);
+                            await response.WriteResponse(streamWriter).ConfigureAwait(false);
 
                             if (!request.Headers.KeepAliveConnection() || response.CloseConnection)
                             {
@@ -120,6 +119,7 @@ namespace uhttpsharp
             catch (IOException)
             {
                 // Socket exceptions on read will be re-thrown as IOException by BufferedStream
+                // ALSO : LimitedStream throws IOException on limit exceed.
             }
             catch (Exception e)
             {

@@ -81,6 +81,7 @@
     <Compile Include="IEnumerable.cs" />
     <Compile Include="IHttpContext.cs" />
     <Compile Include="IHttpMethodProvider.cs" />
+    <Compile Include="LimitedStream.cs" />
     <Compile Include="Listeners\IHttpListener.cs" />
     <Compile Include="Listeners\SslListenerDecoerator.cs" />
     <Compile Include="Listeners\TcpListenerAdapter.cs" />
