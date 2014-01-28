@@ -57,7 +57,7 @@ namespace uhttpsharp
             _requestProvider = requestProvider;
 
             var bufferedStream = new BufferedStream(_client.Stream);
-
+            
             _outputStream = new StreamWriter(bufferedStream) { NewLine = CrLf };
             _inputStream = new StreamReader(bufferedStream);
 

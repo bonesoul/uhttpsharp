@@ -78,7 +78,6 @@
     <Compile Include="HttpResponse.cs" />
     <Compile Include="HttpServer.cs" />
     <Compile Include="HttpServerExtensions.cs" />
-    <Compile Include="IEnumerable.cs" />
     <Compile Include="IHttpContext.cs" />
     <Compile Include="IHttpMethodProvider.cs" />
     <Compile Include="Listeners\IHttpListener.cs" />
