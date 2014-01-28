@@ -43,7 +43,7 @@ namespace uhttpsharp.RequestProviders
             }
 
             IHttpHeaders headers = new HttpHeaders(headersRaw);
-            IHttpHeaders post = await GetPostData(streamReader, headers);
+            IHttpHeaders post = await GetPostData(streamReader, headers).ConfigureAwait(false);
 
             return new HttpRequest(headers, httpMethod, httpProtocol, uri,
                 uri.OriginalString.Split(Separators, StringSplitOptions.RemoveEmptyEntries), queryString, post);
@@ -70,7 +70,7 @@ namespace uhttpsharp.RequestProviders
             IHttpHeaders post;
             if (headers.TryGetByName("content-length", out postContentLength))
             {
-                post = await HttpHeaders.FromPost(streamReader, postContentLength);
+                post = await HttpHeaders.FromPost(streamReader, postContentLength).ConfigureAwait(false);
             }
             else
             {

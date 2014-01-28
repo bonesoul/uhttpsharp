@@ -100,7 +100,7 @@ namespace uhttpsharp
         {
             ContentStream.Position = 0;
             await ContentStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
-            await writer.BaseStream.FlushAsync();
+            await writer.BaseStream.FlushAsync().ConfigureAwait(false);
         }
 
         public bool CloseConnection

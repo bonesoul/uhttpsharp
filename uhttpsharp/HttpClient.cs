@@ -16,6 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using log4net;
 using System.Net;
@@ -31,7 +34,7 @@ using uhttpsharp.RequestProviders;
 
 namespace uhttpsharp
 {
-    internal sealed class HttpClient
+    internal sealed class HttpClientHandler
     {
         private const string CrLf = "\r\n";
         private static readonly byte[] CrLfBuffer = Encoding.UTF8.GetBytes(CrLf);
@@ -39,18 +42,19 @@ namespace uhttpsharp
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private readonly IClient _client;
+        private readonly Func<IHttpContext, Task> _requestHandler;
         private readonly StreamReader _inputStream;
         private readonly StreamWriter _outputStream;
-        private readonly IList<IHttpRequestHandler> _requestHandlers;
         private readonly IHttpRequestProvider _requestProvider;
         private readonly EndPoint _remoteEndPoint;
+        private DateTime _lastOperationTime;
 
-        public HttpClient(IClient client, IList<IHttpRequestHandler> requestHandlers, IHttpRequestProvider requestProvider)
+        public HttpClientHandler(IClient client, Func<IHttpContext, Task> requestHandler, IHttpRequestProvider requestProvider)
         {
             _remoteEndPoint = client.RemoteEndPoint;
             _client = client;
-            _requestHandlers = requestHandlers;
-            _requestProvider = requestProvider;            
+            _requestHandler = requestHandler;
+            _requestProvider = requestProvider;
 
             var bufferedStream = new BufferedStream(_client.Stream);
 
@@ -60,6 +64,8 @@ namespace uhttpsharp
             Logger.InfoFormat("Got Client {0}", _remoteEndPoint);
 
             Task.Factory.StartNew(Process);
+
+            UpdateLastOperationTime();
         }
 
         private async void Process()
@@ -72,41 +78,20 @@ namespace uhttpsharp
 
                     if (request != null)
                     {
+                        UpdateLastOperationTime();
 
                         var context = new HttpContext(request);
 
                         Logger.InfoFormat("{1} : Got request {0}", request.Uri, _client.RemoteEndPoint);
 
-                        var getResponse = BuildHandlers(context)();
+                        await _requestHandler(context).ConfigureAwait(false);
 
-                        await getResponse.ConfigureAwait(false);
-
-                        var response = context.Response;
-
-                        if (response != null)
+                        if (context.Response != null)
                         {
-                            // Headers
-                            await response.WriteHeaders(_outputStream).ConfigureAwait(false);
-
-                            // Cookies
-                            if (context.Cookies.Touched)
-                            {
-                                await _outputStream.WriteAsync(context.Cookies.ToCookieData())
-                                    .ConfigureAwait(false);
-                                await _outputStream.FlushAsync().ConfigureAwait(false);
-                            }
-
-                            // Empty Line
-                            await _outputStream.BaseStream.WriteAsync(CrLfBuffer, 0, CrLfBuffer.Length).ConfigureAwait(false);
-
-                            // Body
-                            await response.WriteResponse(_outputStream).ConfigureAwait(false);
-
-                            if (!request.Headers.KeepAliveConnection() || response.CloseConnection)
-                            {
-                                _client.Close();
-                            }
+                            await WriteResponse(context);
                         }
+
+                        UpdateLastOperationTime();
                     }
                     else
                     {
@@ -114,32 +99,90 @@ namespace uhttpsharp
                     }
                 }
             }
-            catch (SocketException)
-            {
-            }
-            catch (IOException)
-            {
-                // Socket exceptions on read will be re-thrown as IOException by BufferedStream
-            }
             catch (Exception e)
             {
                 // Hate people who make bad calls.
-                Logger.Warn(string.Format("Error while serving : {0} : {1}{2}", _remoteEndPoint, Environment.NewLine, e));
+                Logger.Warn(string.Format("Error while serving : {0}", _remoteEndPoint), e);
                 _client.Close();
             }
 
             Logger.InfoFormat("Lost Client {0}", _remoteEndPoint);
         }
-
-
-        private Func<Task> BuildHandlers(IHttpContext context, int index = 0)
+        private async Task WriteResponse(HttpContext context)
         {
-            if (index > _requestHandlers.Count)
+            IHttpResponse response = context.Response;
+            IHttpRequest request = context.Request;
+    
+            // Headers
+            await response.WriteHeaders(_outputStream).ConfigureAwait(false);
+
+            // Cookies
+            if (context.Cookies.Touched)
+            {
+                await _outputStream.WriteAsync(context.Cookies.ToCookieData())
+                    .ConfigureAwait(false);
+                await _outputStream.FlushAsync().ConfigureAwait(false);
+            }
+
+            // Empty Line
+            await _outputStream.BaseStream.WriteAsync(CrLfBuffer, 0, CrLfBuffer.Length).ConfigureAwait(false);
+
+            // Body
+            await response.WriteResponse(_outputStream).ConfigureAwait(false);
+
+            if (!request.Headers.KeepAliveConnection() || response.CloseConnection)
+            {
+                _client.Close();
+            }
+        }
+
+        public IClient Client
+        {
+            get { return _client; }
+        }
+
+        public void ForceClose()
+        {
+            _client.Close();
+        }
+
+        public DateTime LastOperationTime
+        {
+            get
+            {
+                return _lastOperationTime;
+            }
+        }
+
+        private void UpdateLastOperationTime()
+        {
+            // _lastOperationTime = DateTime.Now;
+        }
+
+    }
+
+
+    public static class RequestHandlersAggregateExtensions
+    {
+
+        public static Func<IHttpContext, Task> Aggregate(this IList<IHttpRequestHandler> handlers)
+        {
+            return handlers.Aggregate(0);
+        }
+
+        private static Func<IHttpContext, Task> Aggregate(this IList<IHttpRequestHandler> handlers, int index)
+        {
+            if (index == handlers.Count)
             {
                 return null;
             }
 
-            return () => _requestHandlers[index].Handle(context, BuildHandlers(context, index + 1));
+            var currentHandler = handlers[index];
+            var nextHandler = handlers.Aggregate(index + 1);
+            
+            return context => currentHandler.Handle(context, () => nextHandler(context));
         }
+
+
     }
 }
