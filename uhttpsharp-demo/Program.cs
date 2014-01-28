@@ -23,10 +23,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using uhttpsharp;
 using uhttpsharp.Handlers;
 using uhttpsharp.Headers;
 using uhttpsharp.Listeners;
+using uhttpsharp.ModelBinders;
 using uhttpsharp.RequestProviders;
 using uhttpsharpdemo.Handlers;
 
@@ -45,10 +47,11 @@ namespace uhttpsharpdemo
                 httpServer.Use(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 82)));
                 //httpServer.Use(new ListenerSslDecorator(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 443)), serverCertificate));
 
-                httpServer.Use(new SessionHandler<DateTime>(() => DateTime.Now));
+                //httpServer.Use(new SessionHandler<DateTime>(() => DateTime.Now));
                 httpServer.Use(new ExceptionHandler());
                 httpServer.Use(new TimingHandler());
 
+                httpServer.Use(new MyHandler());
                 httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
                                                .With("about", new AboutHandler())
                                                .With("strings", new RestHandler<string>(new StringsRestController(), new JsonResponseProvider())));
@@ -68,6 +71,28 @@ namespace uhttpsharpdemo
         }
     }
 
+    class MyModel
+    {
+        public int MyProperty
+        {
+            get; set;
+        }
+
+        public MyModel Model
+        {
+            get; set;
+        }
+    }
+
+    internal class MyHandler : IHttpRequestHandler
+    {
+        public System.Threading.Tasks.Task Handle(IHttpContext context, Func<System.Threading.Tasks.Task> next)
+        {
+            var model = new ModelBinder(new ObjectActivator()).Get<MyModel>(context.Request.QueryString);
+
+            return Task.Factory.GetCompleted();
+        }
+    }
 
     internal class SessionHandler<TSession> : IHttpRequestHandler
     {

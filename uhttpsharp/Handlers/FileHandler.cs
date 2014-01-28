@@ -31,6 +31,7 @@ namespace uhttpsharp.Handlers
 
         static FileHandler()
         {
+
             DefaultMimeType = "text/plain";
             MimeTypes = new Dictionary<string, string>
                             {

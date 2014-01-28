@@ -9,6 +9,7 @@ namespace uhttpsharp.Clients
         Stream Stream { get; }
 
         bool Connected { get; }
+
         void Close();
 
         EndPoint RemoteEndPoint { get; }

@@ -16,6 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using log4net;
 using System.Net;
@@ -31,7 +34,7 @@ using uhttpsharp.RequestProviders;
 
 namespace uhttpsharp
 {
-    internal sealed class HttpClient
+    internal sealed class HttpClientHandler
     {
         private const string CrLf = "\r\n";
         private static readonly byte[] CrLfBuffer = Encoding.UTF8.GetBytes(CrLf);
@@ -39,23 +42,26 @@ namespace uhttpsharp
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private readonly IClient _client;
-        private readonly Stream _stream;
-        private readonly IList<IHttpRequestHandler> _requestHandlers;
+        private readonly Func<IHttpContext, Task> _requestHandler;
         private readonly IHttpRequestProvider _requestProvider;
         private readonly EndPoint _remoteEndPoint;
+        private DateTime _lastOperationTime;
+        private readonly Stream _stream;
 
-        public HttpClient(IClient client, IList<IHttpRequestHandler> requestHandlers, IHttpRequestProvider requestProvider)
+        public HttpClientHandler(IClient client, Func<IHttpContext, Task> requestHandler, IHttpRequestProvider requestProvider)
         {
             _remoteEndPoint = client.RemoteEndPoint;
             _client = client;
-            _requestHandlers = requestHandlers;
-            _requestProvider = requestProvider;            
+            _requestHandler = requestHandler;
+            _requestProvider = requestProvider;
 
             _stream = new BufferedStream(_client.Stream);
-
+            
             Logger.InfoFormat("Got Client {0}", _remoteEndPoint);
 
             Task.Factory.StartNew(Process);
+
+            UpdateLastOperationTime();
         }
 
         private async void Process()
@@ -64,48 +70,29 @@ namespace uhttpsharp
             {
                 while (_client.Connected)
                 {
-                    // TODO : Extract read and write limit to configuration.
-                    var requestStream = new LimitedStream(_stream, readLimit: 1024*1024, writeLimit: 1024*1024);
-                    var request = await _requestProvider.Provide(new StreamReader(requestStream)).ConfigureAwait(false);
+                    // TODO : Configuration.
+                    var limitedStream = new LimitedStream(_stream, readLimit: 1024*1024, writeLimit: 1024*1024);
+                    var streamReader = new StreamReader(limitedStream);
+                    
+                    var request = await _requestProvider.Provide(streamReader).ConfigureAwait(false);
 
                     if (request != null)
                     {
+                        UpdateLastOperationTime();
 
                         var context = new HttpContext(request);
 
                         Logger.InfoFormat("{1} : Got request {0}", request.Uri, _client.RemoteEndPoint);
 
-                        var getResponse = BuildHandlers(context)();
+                        await _requestHandler(context).ConfigureAwait(false);
 
-                        await getResponse.ConfigureAwait(false);
-
-                        var response = context.Response;
-
-                        if (response != null)
+                        if (context.Response != null)
                         {
-                            var streamWriter = new StreamWriter(requestStream);
-                            // Headers
-                            await response.WriteHeaders(streamWriter).ConfigureAwait(false);
-
-                            // Cookies
-                            if (context.Cookies.Touched)
-                            {
-                                await streamWriter.WriteAsync(context.Cookies.ToCookieData())
-                                    .ConfigureAwait(false);
-                                await streamWriter.FlushAsync().ConfigureAwait(false);
-                            }
-
-                            // Empty Line
-                            await requestStream.WriteAsync(CrLfBuffer, 0, CrLfBuffer.Length).ConfigureAwait(false);
-
-                            // Body
-                            await response.WriteResponse(streamWriter).ConfigureAwait(false);
-
-                            if (!request.Headers.KeepAliveConnection() || response.CloseConnection)
-                            {
-                                _client.Close();
-                            }
+                            var streamWriter = new StreamWriter(limitedStream);
+                            await WriteResponse(context, streamWriter);
                         }
+
+                        UpdateLastOperationTime();
                     }
                     else
                     {
@@ -113,33 +100,90 @@ namespace uhttpsharp
                     }
                 }
             }
-            catch (SocketException)
-            {
-            }
-            catch (IOException)
-            {
-                // Socket exceptions on read will be re-thrown as IOException by BufferedStream
-                // ALSO : LimitedStream throws IOException on limit exceed.
-            }
             catch (Exception e)
             {
                 // Hate people who make bad calls.
-                Logger.Warn(string.Format("Error while serving : {0} : {1}{2}", _remoteEndPoint, Environment.NewLine, e));
+                Logger.Warn(string.Format("Error while serving : {0}", _remoteEndPoint), e);
                 _client.Close();
             }
 
             Logger.InfoFormat("Lost Client {0}", _remoteEndPoint);
         }
-
-
-        private Func<Task> BuildHandlers(IHttpContext context, int index = 0)
+        private async Task WriteResponse(HttpContext context, StreamWriter writer)
         {
-            if (index > _requestHandlers.Count)
+            IHttpResponse response = context.Response;
+            IHttpRequest request = context.Request;
+    
+            // Headers
+            await response.WriteHeaders(writer).ConfigureAwait(false);
+
+            // Cookies
+            if (context.Cookies.Touched)
+            {
+                await writer.WriteAsync(context.Cookies.ToCookieData())
+                    .ConfigureAwait(false);
+                await writer.FlushAsync().ConfigureAwait(false);
+            }
+
+            // Empty Line
+            await writer.BaseStream.WriteAsync(CrLfBuffer, 0, CrLfBuffer.Length).ConfigureAwait(false);
+
+            // Body
+            await response.WriteResponse(writer).ConfigureAwait(false);
+
+            if (!request.Headers.KeepAliveConnection() || response.CloseConnection)
+            {
+                _client.Close();
+            }
+        }
+
+        public IClient Client
+        {
+            get { return _client; }
+        }
+
+        public void ForceClose()
+        {
+            _client.Close();
+        }
+
+        public DateTime LastOperationTime
+        {
+            get
+            {
+                return _lastOperationTime;
+            }
+        }
+
+        private void UpdateLastOperationTime()
+        {
+            // _lastOperationTime = DateTime.Now;
+        }
+
+    }
+
+
+    public static class RequestHandlersAggregateExtensions
+    {
+
+        public static Func<IHttpContext, Task> Aggregate(this IList<IHttpRequestHandler> handlers)
+        {
+            return handlers.Aggregate(0);
+        }
+
+        private static Func<IHttpContext, Task> Aggregate(this IList<IHttpRequestHandler> handlers, int index)
+        {
+            if (index == handlers.Count)
             {
                 return null;
             }
 
-            return () => _requestHandlers[index].Handle(context, BuildHandlers(context, index + 1));
+            var currentHandler = handlers[index];
+            var nextHandler = handlers.Aggregate(index + 1);
+            
+            return context => currentHandler.Handle(context, () => nextHandler(context));
         }
+
+
     }
 }

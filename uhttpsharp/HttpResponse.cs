@@ -75,8 +75,8 @@ namespace uhttpsharp
 
             CacheHeaders(new StreamWriter(_headerStream));
         }
-        public HttpResponse(HttpResponseCode code, byte[] contentStream, bool closeConnection) 
-            : this (code, "text/html; charset=utf-8", new MemoryStream(contentStream), closeConnection)
+        public HttpResponse(HttpResponseCode code, byte[] contentStream, bool keepAliveConnection) 
+            : this (code, "text/html; charset=utf-8", new MemoryStream(contentStream), keepAliveConnection)
         {
         }
 
@@ -100,7 +100,8 @@ namespace uhttpsharp
         {
             ContentStream.Position = 0;
             await ContentStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
-            await writer.BaseStream.FlushAsync();
+            
+            await writer.BaseStream.FlushAsync().ConfigureAwait(false);
         }
 
         public bool CloseConnection

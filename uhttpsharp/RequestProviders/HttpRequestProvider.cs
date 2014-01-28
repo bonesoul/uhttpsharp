@@ -32,18 +32,21 @@ namespace uhttpsharp.RequestProviders
             var queryString = GetQueryStringData(ref url);
             var uri = new Uri(url, UriKind.Relative);
 
-            var headersRaw = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+            var headersRaw = new List<KeyValuePair<string, string>>();
 
             // get the headers
             string line;
+
             while (!string.IsNullOrEmpty((line = await streamReader.ReadLineAsync().ConfigureAwait(false))))
-            { 
-                var headerKvp = SplitHeader(line);
-                headersRaw.Add(headerKvp.Key, headerKvp.Value);
+            {
+                string currentLine = line;
+
+                var headerKvp = SplitHeader(currentLine);
+                headersRaw.Add(headerKvp);
             }
 
-            IHttpHeaders headers = new HttpHeaders(headersRaw);
-            IHttpHeaders post = await GetPostData(streamReader, headers);
+            IHttpHeaders headers = new ListHttpHeaders(headersRaw);
+            IHttpHeaders post = await GetPostData(streamReader, headers).ConfigureAwait(false);
 
             return new HttpRequest(headers, httpMethod, httpProtocol, uri,
                 uri.OriginalString.Split(Separators, StringSplitOptions.RemoveEmptyEntries), queryString, post);
@@ -70,7 +73,7 @@ namespace uhttpsharp.RequestProviders
             IHttpHeaders post;
             if (headers.TryGetByName("content-length", out postContentLength))
             {
-                post = await HttpHeaders.FromPost(streamReader, postContentLength);
+                post = await HttpHeaders.FromPost(streamReader, postContentLength).ConfigureAwait(false);
             }
             else
             {
