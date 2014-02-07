@@ -45,9 +45,12 @@ namespace uhttpsharp.Headers
     {
         public static async Task<IHttpPost> Create(StreamReader reader, int postContentLength)
         {
-            byte[] raw = new byte[postContentLength];
-            int readBytes = await reader.BaseStream.ReadAsync(raw, 0, postContentLength);
+            char[] rawEncoded = new char[postContentLength];
+            
+            int readBytes = await reader.ReadAsync(rawEncoded, 0, rawEncoded.Length);
 
+            byte[] raw = Encoding.UTF8.GetBytes(rawEncoded, 0, readBytes);
+            
             return new HttpPost(raw, readBytes);
         }
 
