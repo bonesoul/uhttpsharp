@@ -22,7 +22,7 @@ namespace uhttpsharp.ModelBinders
 
             foreach (var prop in retVal.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
-                if (prop.PropertyType.IsPrimitive)
+                if (prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string))
                 {
                     string stringValue;
                     if (headers.TryGetByName(prop.Name, out stringValue))
@@ -63,7 +63,7 @@ namespace uhttpsharp.ModelBinders
                 string stringValue;
                 if (headers.TryGetByName(prefix + "[" + prop.Name + "]", out stringValue))
                 {
-                    object value = prop.PropertyType.IsPrimitive
+                    object value = prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string)
                         ? Convert.ChangeType(stringValue, prop.PropertyType)
                         : Get(prop.PropertyType, headers, prefix + "[" + prop.Name + "]");
 
