@@ -46,7 +46,7 @@ namespace uhttpsharp.RequestProviders
                 headersRaw.Add(headerKvp);
             }
 
-            IHttpHeaders headers = new HttpHeaders(headersRaw.ToDictionary(k => k.Key, k => k.Value));
+            IHttpHeaders headers = new HttpHeaders(headersRaw.ToDictionary(k => k.Key, k => k.Value, StringComparer.InvariantCultureIgnoreCase));
             IHttpPost post = await GetPostData(streamReader, headers).ConfigureAwait(false);
 
             return new HttpRequest(headers, httpMethod, httpProtocol, uri,
