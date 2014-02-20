@@ -1,8 +1,8 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0"?>
 <package>
 	<metadata>
 		<id>uHttpSharp</id>
-		<version>0.1.2</version>
+		<version>0.1.4</version>
 		<title>uHttpSharp</title>
 		<authors>Shani Elharrar, Joe White, Hüseyin Uslu</authors>
 		<owners>Shani Elharrar, Joe White, Hüseyin Uslu</owners>
