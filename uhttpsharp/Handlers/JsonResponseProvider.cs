@@ -6,6 +6,13 @@ namespace uhttpsharp.Handlers
 {
     public class JsonResponseProvider : IResponseProvider
     {
+        public static readonly IResponseProvider Default = new JsonResponseProvider();
+
+        private JsonResponseProvider()
+        {
+            
+        }
+
         public Task<IHttpResponse> Provide(object value)
         {
             var memoryStream = new MemoryStream();

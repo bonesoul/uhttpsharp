@@ -58,7 +58,7 @@ namespace uhttpsharpdemo
                 httpServer.Use(new MyHandler());
                 httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
                                                .With("about", new AboutHandler())
-                                               .With("strings", new RestHandler<string>(new StringsRestController(), new JsonResponseProvider())));
+                                               .With("strings", new RestHandler<string>(new StringsRestController(), JsonResponseProvider.Default)));
 
                 httpServer.Use(new FileHandler());
                 httpServer.Use(new ErrorHandler());
@@ -92,13 +92,13 @@ namespace uhttpsharpdemo
             return Task.Factory.GetCompleted();
         }
 
-        public MySuperHandler this[int index]
+
+        [Indexer]
+        public Task<IHttpRequestHandler> GetChild(int index)
         {
-            get
-            {
-                return new MySuperHandler();
-            }
+            return Task.FromResult<IHttpRequestHandler>(new MySuperHandler());
         }
+
     }
 
     class MyModel
