@@ -20,10 +20,12 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using System.Web.UI;
 using uhttpsharp;
 using uhttpsharp.Handlers;
 using uhttpsharp.Headers;
@@ -31,6 +33,7 @@ using uhttpsharp.Listeners;
 using uhttpsharp.ModelBinders;
 using uhttpsharp.RequestProviders;
 using uhttpsharpdemo.Handlers;
+using HttpResponse = System.Web.HttpResponse;
 
 namespace uhttpsharpdemo
 {
@@ -49,6 +52,7 @@ namespace uhttpsharpdemo
 
                 //httpServer.Use(new SessionHandler<DateTime>(() => DateTime.Now));
                 httpServer.Use(new ExceptionHandler());
+                httpServer.Use(new ClassRouter(new MySuperHandler()));
                 httpServer.Use(new TimingHandler());
 
                 httpServer.Use(new MyHandler());
@@ -71,16 +75,44 @@ namespace uhttpsharpdemo
         }
     }
 
+    public class MySuperHandler : IHttpRequestHandler
+    {
+
+        public MySuperHandler Child
+        {
+            get
+            {
+                return new MySuperHandler();
+            }
+        }
+
+        public Task Handle(IHttpContext context, Func<Task> next)
+        {
+            context.Response = uhttpsharp.HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Hello!", true);
+            return Task.Factory.GetCompleted();
+        }
+
+        public MySuperHandler this[int index]
+        {
+            get
+            {
+                return new MySuperHandler();
+            }
+        }
+    }
+
     class MyModel
     {
         public int MyProperty
         {
-            get; set;
+            get;
+            set;
         }
 
         public MyModel Model
         {
-            get; set;
+            get;
+            set;
         }
     }
 

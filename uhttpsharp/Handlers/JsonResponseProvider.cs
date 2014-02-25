@@ -10,7 +10,7 @@ namespace uhttpsharp.Handlers
         {
             var memoryStream = new MemoryStream();
             var writer = new JsonTextWriter(new StreamWriter(memoryStream));
-            var serializer = new JsonSerializer();
+            var serializer = new JsonSerializer() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, Formatting = Formatting.Indented};
             serializer.Serialize(writer, value);
             writer.Flush();
             return Task.FromResult<IHttpResponse>(new HttpResponse(HttpResponseCode.Ok, "application/json; charset=utf-8", memoryStream, true));

@@ -26,7 +26,7 @@ namespace uhttpsharp.RequestProviders
                 return null;
             }
 
-            var httpMethod = HttpMethodProvider.Default.Provide(tokens[0]);
+            
             var httpProtocol = tokens[2];
 
             var url = tokens[1];
@@ -49,6 +49,12 @@ namespace uhttpsharp.RequestProviders
             IHttpHeaders headers = new HttpHeaders(headersRaw.ToDictionary(k => k.Key, k => k.Value, StringComparer.InvariantCultureIgnoreCase));
             IHttpPost post = await GetPostData(streamReader, headers).ConfigureAwait(false);
 
+            string verb;
+            if (!headers.TryGetByName("_method", out verb))
+            {
+                verb = tokens[0];
+            }
+            var httpMethod = HttpMethodProvider.Default.Provide(verb);
             return new HttpRequest(headers, httpMethod, httpProtocol, uri,
                 uri.OriginalString.Split(Separators, StringSplitOptions.RemoveEmptyEntries), queryString, post);
         }
