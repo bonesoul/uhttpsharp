@@ -80,7 +80,7 @@ namespace uhttpsharp
                     {
                         UpdateLastOperationTime();
 
-                        var context = new HttpContext(request);
+                        var context = new HttpContext(request, _client.RemoteEndPoint);
 
                         Logger.InfoFormat("{1} : Got request {0}", request.Uri, _client.RemoteEndPoint);
 

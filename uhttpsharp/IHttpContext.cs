@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using log4net.Core;
@@ -19,6 +20,8 @@ namespace uhttpsharp
         ICookiesStorage Cookies { get; }
 
         dynamic State { get; }
+
+        EndPoint RemoteEndPoint { get; }
 
     }
 
