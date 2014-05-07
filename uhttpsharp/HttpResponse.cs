@@ -53,14 +53,18 @@ namespace uhttpsharp
         private readonly Stream _headerStream = new MemoryStream();
         private readonly bool _closeConnection;
 
+        private readonly List<KeyValuePair<string, string>> additionalHeaders;
+
         public HttpResponse(HttpResponseCode code, string content, bool closeConnection)
             : this(code, "text/html; charset=utf-8", StringToStream(content), closeConnection)
         {
         }
+
         public HttpResponse(string contentType, Stream contentStream, bool closeConnection)
             : this(HttpResponseCode.Ok, contentType, contentStream, closeConnection)
         {
         }
+
         private HttpResponse(HttpResponseCode code, string contentType, Stream contentStream, bool keepAliveConnection)
         {
             Protocol = "HTTP/1.1";
@@ -70,8 +74,9 @@ namespace uhttpsharp
             ContentStream = contentStream;
             _closeConnection = !keepAliveConnection;
 
-            WriteHeaders(new StreamWriter(_headerStream));
+            additionalHeaders = new List<KeyValuePair<string, string>>();
         }
+
         public HttpResponse(HttpResponseCode code, byte[] contentStream, bool closeConnection) 
             : this (code, "text/html; charset=utf-8", new MemoryStream(contentStream), closeConnection)
         {
@@ -85,6 +90,7 @@ namespace uhttpsharp
                     "<html><head><title>{0}</title></head><body><h1>{0}</h1><hr>{1}</body></html>",
                     message, body), keepAliveConnection);
         }
+
         private static Stream StringToStream(string content)
         {
             var stream = new MemoryStream();
@@ -93,14 +99,22 @@ namespace uhttpsharp
             writer.Flush();
             return stream;
         }
+
         public async Task WriteResponse(StreamWriter writer)
         {
+            WriteHeaders(new StreamWriter(_headerStream));
+
             _headerStream.Position = 0;
             await _headerStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
             
             ContentStream.Position = 0;
             await ContentStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
             await writer.BaseStream.FlushAsync();
+        }
+
+        public void AddHeader(string name, string value)
+        {
+            additionalHeaders.Add(new KeyValuePair<string, string>(name, value));
         }
 
         public bool CloseConnection
@@ -115,6 +129,14 @@ namespace uhttpsharp
             tempWriter.WriteLine("Connection: {0}", _closeConnection ? "Close" : "Keep-Alive");
             tempWriter.WriteLine("Content-Type: {0}", ContentType);
             tempWriter.WriteLine("Content-Length: {0}", ContentStream.Length);
+
+            foreach (KeyValuePair<string, string> additionalHeader in additionalHeaders)
+            {
+                tempWriter.Write(additionalHeader.Key);
+                tempWriter.Write(": ");
+                tempWriter.WriteLine(additionalHeader.Value);
+            }
+
             tempWriter.WriteLine();
             tempWriter.Flush();
         }
