@@ -5,7 +5,7 @@ namespace uhttpsharp.Handlers
     public interface IResponseProvider
     {
 
-        Task<IHttpResponse> Provide(object value);
+        Task<IHttpResponse> Provide(object value, HttpResponseCode responseCode = HttpResponseCode.Ok);
 
     }
 }
