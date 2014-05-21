@@ -5,7 +5,7 @@ A very lightweight & simple embedded http server for c#
 Master | Provider
 ------ | --------
 [![Build Status][TeamCityImgMaster]][TeamCityLinkMaster] | Windows CI Provided By [JetBrains][] and [CodeBetter][]
-[![Build Status][AppVeyorImgMaster]][AppVeyorLinkMaster] | Windows CI Provided By [AppVeyor][]
+[![Build status](https://ci.appveyor.com/api/projects/status/1schhjbpx7oomrx7)](https://ci.appveyor.com/project/shanielh/uHttpSharp) | Windows CI Provided By [AppVeyor][]
 [![Build Status][MonoImgMaster]][MonoLinkMaster] | Mono CI Provided by [travis-ci][] 
 
 [TeamCityImgMaster]:http://teamcity.codebetter.com/app/rest/builds/buildType:\(id:bt1191\)/statusIcon
@@ -13,8 +13,6 @@ Master | Provider
 
 [MonoImgMaster]:https://travis-ci.org/Code-Sharp/uHttpSharp.png?branch=master
 [MonoLinkMaster]:https://travis-ci.org/Code-Sharp/uHttpSharp
-[AppVeyorLinkMaster]:https://ci.appveyor.com/project/uhttpsharp
-[AppVeyorImgMaster]:https://ci.appveyor.com/api/projects/status?id=1schhjbpx7oomrx7
 
 [travis-ci]:https://travis-ci.org/
 [AppVeyor]:http://www.appveyor.com/
