@@ -11,8 +11,8 @@ Master | Provider
 [TeamCityImgMaster]:http://teamcity.codebetter.com/app/rest/builds/buildType:\(id:bt1191\)/statusIcon
 [TeamCityLinkMaster]:http://teamcity.codebetter.com/viewLog.html?buildTypeId=bt1191&buildId=lastFinished&guest=1
 
-[MonoImgMaster]:https://travis-ci.org/shanielh/uHttpSharp.png?branch=master
-[MonoLinkMaster]:https://travis-ci.org/shanielh/uHttpSharp
+[MonoImgMaster]:https://travis-ci.org/Code-Sharp/uHttpSharp.png?branch=master
+[MonoLinkMaster]:https://travis-ci.org/Code-Sharp/uHttpSharp
 [AppVeyorLinkMaster]:https://ci.appveyor.com/project/uhttpsharp
 [AppVeyorImgMaster]:https://ci.appveyor.com/api/projects/status?id=1schhjbpx7oomrx7
 
