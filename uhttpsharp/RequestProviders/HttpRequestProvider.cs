@@ -19,7 +19,15 @@ namespace uhttpsharp.RequestProviders
             if (request == null)
                 return null;
 
-            var tokens = request.Split(' ');
+            var firstSpace = request.IndexOf(' ');
+            var lastSpace = request.LastIndexOf(' ');
+
+            var tokens = new []
+            {
+                request.Substring(0, firstSpace),
+                request.Substring(firstSpace + 1, lastSpace - firstSpace - 1),
+                request.Substring(lastSpace + 1)
+            };
 
             if (tokens.Length != 3)
             {
