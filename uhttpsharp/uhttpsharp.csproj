@@ -92,7 +92,9 @@
     <Compile Include="ModelBinders\ModelBinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HttpResponseCode.cs" />
+    <Compile Include="RequestProviders\HttpRequestMethodDecorator.cs" />
     <Compile Include="RequestProviders\HttpRequestProvider.cs" />
+    <Compile Include="RequestProviders\HttpRequestProviderMethodOverrideDecorator.cs" />
     <Compile Include="RequestProviders\IHttpRequestProvider.cs" />
     <Compile Include="TaskFactoryExtensions.cs" />
     <Compile Include="Clients\TcpClientAdapter.cs" />
