@@ -16,9 +16,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.Remoting.Contexts;
 using System.Text;
 using log4net;
 using System.Net;
@@ -26,7 +23,6 @@ using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using uhttpsharp.Clients;
 using uhttpsharp.Headers;
@@ -115,15 +111,23 @@ namespace uhttpsharp
             IHttpRequest request = context.Request;
     
             // Headers
-            await response.WriteHeaders(writer).ConfigureAwait(false);
+            await writer.WriteLineAsync(string.Format("HTTP/1.1 {0} {1}",
+                (int)response.ResponseCode,
+                response.ResponseCode));
+            
+            foreach (var header in response.Headers)
+            {
+                await writer.WriteLineAsync(string.Format("{0}: {1}", header.Key, header.Value));
+            }
 
             // Cookies
             if (context.Cookies.Touched)
             {
                 await writer.WriteAsync(context.Cookies.ToCookieData())
                     .ConfigureAwait(false);
-                await writer.FlushAsync().ConfigureAwait(false);
             }
+
+            await writer.FlushAsync().ConfigureAwait(false);
 
             // Empty Line
             await writer.BaseStream.WriteAsync(CrLfBuffer, 0, CrLfBuffer.Length).ConfigureAwait(false);

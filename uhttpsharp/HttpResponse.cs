@@ -18,10 +18,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
 using uhttpsharp;
+using uhttpsharp.Headers;
 
 namespace uhttpsharp
 {
@@ -29,32 +31,25 @@ namespace uhttpsharp
     {
         Task WriteResponse(StreamWriter writer);
 
-        Task WriteHeaders(StreamWriter writer);
+        /// <summary>
+        /// Gets the status line of this http response,
+        /// The first line that will be sent to the client.
+        /// </summary>
+        HttpResponseCode ResponseCode { get; }
+
+        IHttpHeaders Headers { get; }
 
         bool CloseConnection { get; }
     }
 
     public sealed class HttpResponse : IHttpResponse
     {
-        private static readonly Dictionary<int, string> ResponseTexts =
-            new Dictionary<int, string>
-                {
-                    {200, "OK"},
-                    {302, "Found"},
-                    {303, "See Other"},
-                    {400, "BadRequest"},
-                    {404, "Not Found"},
-                    {502, "Server Busy"},
-                    {500, "Internal Server Error"}
-                };
-
-        public string Protocol { get; private set; }
-        public string ContentType { get; private set; }
-        public HttpResponseCode Code { get; private set; }
         private Stream ContentStream { get; set; }
 
         private readonly Stream _headerStream = new MemoryStream();
         private readonly bool _closeConnection;
+        private readonly IHttpHeaders _headers;
+        private readonly HttpResponseCode _responseCode;
 
         public HttpResponse(HttpResponseCode code, string content, bool closeConnection)
             : this(code, "text/html; charset=utf-8", StringToStream(content), closeConnection)
@@ -66,14 +61,18 @@ namespace uhttpsharp
         }
         public HttpResponse(HttpResponseCode code, string contentType, Stream contentStream, bool keepAliveConnection)
         {
-            Protocol = "HTTP/1.1";
-            ContentType = contentType;
-            
-            Code = code;
             ContentStream = contentStream;
+
             _closeConnection = !keepAliveConnection;
 
-            CacheHeaders(new StreamWriter(_headerStream));
+            _responseCode = code;
+            _headers = new ListHttpHeaders(new[]
+            {
+                new KeyValuePair<string, string>("Date", DateTime.UtcNow.ToString("R")),
+                new KeyValuePair<string, string>("Connection", _closeConnection ? "Close" : "Keep-Alive"),
+                new KeyValuePair<string, string>("Content-Type", contentType),
+                new KeyValuePair<string, string>("Content-Length", ContentStream.Length.ToString(CultureInfo.InvariantCulture)),
+            });
         }
         public HttpResponse(HttpResponseCode code, byte[] contentStream, bool keepAliveConnection) 
             : this (code, "text/html; charset=utf-8", new MemoryStream(contentStream), keepAliveConnection)
@@ -103,23 +102,19 @@ namespace uhttpsharp
             
             await writer.BaseStream.FlushAsync().ConfigureAwait(false);
         }
+        public HttpResponseCode ResponseCode
+        {
+            get { return _responseCode; }
+        }
+        public IHttpHeaders Headers
+        {
+            get { return _headers; }
+        }
 
         public bool CloseConnection
         {
             get { return _closeConnection; }
         }
-
-        private void CacheHeaders(StreamWriter tempWriter)
-        {
-            tempWriter.WriteLine("{0} {1} {2}", Protocol, (int)Code, ResponseTexts[(int)Code]);
-            tempWriter.WriteLine("Date: {0}", DateTime.UtcNow.ToString("R"));
-            tempWriter.WriteLine("Connection: {0}", _closeConnection ? "Close" : "Keep-Alive");
-            tempWriter.WriteLine("Content-Type: {0}", ContentType);
-            tempWriter.WriteLine("Content-Length: {0}", ContentStream.Length);
-            //tempWriter.WriteLine();
-            tempWriter.Flush();
-        }
-
 
         public async Task WriteHeaders(StreamWriter writer)
         {

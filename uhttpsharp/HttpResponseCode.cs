@@ -20,7 +20,6 @@ namespace uhttpsharp
         IMUsed = 226,
 
         // Redirection
-        MultipleChoices = 200,
         MovedPermanently=301,
         Found = 302,
         SeeOther = 303,
