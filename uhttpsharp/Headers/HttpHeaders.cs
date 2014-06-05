@@ -101,7 +101,7 @@ namespace uhttpsharp.Headers
 
     [DebuggerDisplay("{Count} Headers")]
     [DebuggerTypeProxy(typeof(HttpHeadersDebuggerProxy))]
-    internal class ListHttpHeaders : IHttpHeaders
+    public class ListHttpHeaders : IHttpHeaders
     {
         private readonly IList<KeyValuePair<string, string>> _values;
         public ListHttpHeaders(IList<KeyValuePair<string, string>> values)
@@ -143,7 +143,7 @@ namespace uhttpsharp.Headers
 
     [DebuggerDisplay("{Count} Headers")]
     [DebuggerTypeProxy(typeof(HttpHeadersDebuggerProxy))]
-    internal class HttpHeaders : IHttpHeaders
+    public class HttpHeaders : IHttpHeaders
     {
         private readonly IDictionary<string, string> _values;
 

@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace uhttpsharp.Headers
 {
     [DebuggerDisplay("Empty Headers")]
-    internal class EmptyHttpHeaders : IHttpHeaders
+    public class EmptyHttpHeaders : IHttpHeaders
     {
         public static readonly IHttpHeaders Empty = new EmptyHttpHeaders();
         
