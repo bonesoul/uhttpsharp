@@ -133,7 +133,7 @@ namespace uhttpsharp
             await writer.BaseStream.WriteAsync(CrLfBuffer, 0, CrLfBuffer.Length).ConfigureAwait(false);
 
             // Body
-            await response.WriteResponse(writer).ConfigureAwait(false);
+            await response.WriteBody(writer).ConfigureAwait(false);
 
             if (!request.Headers.KeepAliveConnection() || response.CloseConnection)
             {

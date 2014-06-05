@@ -29,7 +29,7 @@ namespace uhttpsharp
 {
     public interface IHttpResponse
     {
-        Task WriteResponse(StreamWriter writer);
+        Task WriteBody(StreamWriter writer);
 
         /// <summary>
         /// Gets the status line of this http response,
@@ -95,7 +95,7 @@ namespace uhttpsharp
             writer.Flush();
             return stream;
         }
-        public async Task WriteResponse(StreamWriter writer)
+        public async Task WriteBody(StreamWriter writer)
         {
             ContentStream.Position = 0;
             await ContentStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
