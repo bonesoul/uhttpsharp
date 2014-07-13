@@ -46,7 +46,7 @@ namespace uhttpsharp.Handlers
                     var routes = GetRoutesOfHandler(rootType);
                     foreach (var route in routes)
                     {
-                        var tuple = Tuple.Create(route.PropertyType, route.Name);
+                        var tuple = Tuple.Create(rootType, route.Name);
                         var value = CreateRoute(tuple);
                         Routers.Add(tuple, value);
                     }
