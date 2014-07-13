@@ -23,18 +23,46 @@ namespace uhttpsharp.Handlers
         public ClassRouter(IHttpRequestHandler root)
         {
             _root = root;
+            Initialize();
+        }
+        public void Initialize()
+        {
+            var handlerstack = new Stack<IHttpRequestHandler>();
+                
+            handlerstack.Push(_root);
+
+            while (handlerstack.Count > 0)
+            {
+                var routes = GetRoutesOfHandler(handlerstack.Peek()).ToArray();
+                var current = handlerstack.Pop();
+                for (int i = 0; i < routes.Count(); ++i)
+                {
+                    var tuple = Tuple.Create(routes[i].PropertyType, routes[i].Name);
+                    var value = CreateRoute(tuple);
+                    if (Routers.TryAdd(tuple, value))
+                        handlerstack.Push(value(current)); //push nexthandler to stack
+                }
+            }
+        }
+        private IEnumerable<PropertyInfo> GetRoutesOfHandler(IHttpRequestHandler handler)
+        {
+            return handler.GetType()
+                            .GetProperties()
+                            .Where(p => typeof(IHttpRequestHandler).IsAssignableFrom(p.PropertyType)).ToArray();
         }
 
+        /*
+         * Routers dictionary is getting filled with empty keys for routes that are not found :(
+         * So I prebuild the Routes
+         */
         public async Task Handle(IHttpContext context, Func<Task> next)
         {
             var handler = _root;
 
             foreach (var parameter in context.Request.RequestParameters)
             {
-
-                var getNextHandler = Routers.GetOrAdd(Tuple.Create(handler.GetType(), parameter), CreateRoute);
-
-                if (getNextHandler != null)
+                Func<IHttpRequestHandler,IHttpRequestHandler> getNextHandler;
+                if (Routers.TryGetValue(Tuple.Create(handler.GetType(), parameter), out getNextHandler))
                 {
                     handler = getNextHandler(handler);
                 }
@@ -42,15 +70,16 @@ namespace uhttpsharp.Handlers
                 {
                     var getNextByIndex = IndexerRouters.GetOrAdd(handler.GetType(), GetIndexerRouter);
 
-                    if (getNextByIndex == null)
+                    if (getNextByIndex == null) //Indexer is not found
                     {
+
                         await next();
                         return;
                     }
 
                     var returnedTask = getNextByIndex(handler, parameter);
 
-                    if (returnedTask == null)
+                    if (returnedTask == null) //Indexer found, but returned null (for whatever reason)
                     {
                         await next();
                         return;
