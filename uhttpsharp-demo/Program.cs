@@ -24,6 +24,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
 using System.Web.UI;
 using uhttpsharp;
@@ -77,26 +78,27 @@ namespace uhttpsharpdemo
 
     public class MySuperHandler : IHttpRequestHandler
     {
+        private int _index;
 
         public MySuperHandler Child
         {
             get
             {
-                return new MySuperHandler();
+                _index++; return this; 
             }
         }
-
         public Task Handle(IHttpContext context, Func<Task> next)
         {
-            context.Response = uhttpsharp.HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Hello!", true);
+            context.Response = uhttpsharp.HttpResponse.CreateWithMessage(HttpResponseCode.Ok, "Hello!" + _index, true);
             return Task.Factory.GetCompleted();
         }
 
 
         [Indexer]
-        public Task<IHttpRequestHandler> GetChild(int index)
+        public Task<IHttpRequestHandler> GetChild(IHttpContext context, int index)
         {
-            return Task.FromResult<IHttpRequestHandler>(new MySuperHandler());
+            _index += index;
+            return Task.FromResult<IHttpRequestHandler>(this);
         }
 
     }
