@@ -135,14 +135,12 @@ namespace uhttpsharp
             // Body
             await response.WriteBody(writer).ConfigureAwait(false);
 
+            await writer.FlushAsync().ConfigureAwait(false);
+            await writer.BaseStream.FlushAsync().ConfigureAwait(false);
+
             if (!request.Headers.KeepAliveConnection() || response.CloseConnection)
             {
                 _client.Close();
-            }
-            else
-            {
-                await writer.FlushAsync().ConfigureAwait(false);
-                await writer.BaseStream.FlushAsync().ConfigureAwait(false);
             }
         }
 
