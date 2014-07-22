@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace uhttpsharp.Handlers.Compression
@@ -37,8 +38,13 @@ namespace uhttpsharp.Handlers.Compression
                 return;
             }
 
-            var encodings = context.Request.Headers.GetByName("Accept-Encoding")
-                .Split(Seperator, StringSplitOptions.RemoveEmptyEntries);
+            string encodingNames;
+            if (!context.Request.Headers.TryGetByName("Accept-Encoding", out encodingNames))
+            {
+                return;
+            }
+
+            var encodings = encodingNames.Split(Seperator, StringSplitOptions.RemoveEmptyEntries);
 
             var compressor =
                 _compressors.FirstOrDefault(c => encodings.Contains(c.Name, StringComparer.InvariantCultureIgnoreCase));
