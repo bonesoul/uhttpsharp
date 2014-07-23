@@ -139,6 +139,11 @@ namespace uhttpsharp
             {
                 _client.Close();
             }
+            else
+            {
+                await writer.FlushAsync().ConfigureAwait(false);
+                await writer.BaseStream.FlushAsync().ConfigureAwait(false);
+            }
         }
 
         public IClient Client

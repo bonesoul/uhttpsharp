@@ -39,9 +39,8 @@
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -56,12 +55,24 @@
     <Compile Include="..\AssemblyCommon.cs">
       <Link>Properties\AssemblyCommon.cs</Link>
     </Compile>
+    <Compile Include="Attributes\IModelBinding.cs" />
+    <Compile Include="Attributes\HttpMethodAttribute.cs" />
     <Compile Include="Clients\ClientSslDecoerator.cs" />
     <Compile Include="Clients\IClient.cs" />
     <Compile Include="Handlers\ClassRouter.cs" />
+    <Compile Include="Handlers\Compression\CompressionHandler.cs" />
+    <Compile Include="Handlers\ControllerHandler.cs" />
+    <Compile Include="Handlers\Compression\DeflateCompressor.cs" />
     <Compile Include="Handlers\FileHandler.cs" />
+    <Compile Include="Controllers\IController.cs" />
+    <Compile Include="Controllers\IControllerResponse.cs" />
+    <Compile Include="Controllers\IPipeline.cs" />
+    <Compile Include="Handlers\Compression\GZipCompressor.cs" />
+    <Compile Include="Handlers\Compression\CompressedResponse.cs" />
+    <Compile Include="Handlers\Compression\ICompressor.cs" />
     <Compile Include="Handlers\IResponseProvider.cs" />
     <Compile Include="Handlers\IRestController.cs" />
+    <Compile Include="Handlers\IView.cs" />
     <Compile Include="Handlers\JsonResponseProvider.cs" />
     <Compile Include="Handlers\RestHandler.cs" />
     <Compile Include="Headers\CompositeHttpHeaders.cs" />
@@ -89,6 +100,7 @@
     <Compile Include="Listeners\SslListenerDecoerator.cs" />
     <Compile Include="Listeners\TcpListenerAdapter.cs" />
     <Compile Include="ModelBinders\IModelBinder.cs" />
+    <Compile Include="ModelBinders\JsonModelBinder.cs" />
     <Compile Include="ModelBinders\ModelBinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HttpResponseCode.cs" />

@@ -1,13 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using uhttpsharp.Headers;
+﻿using uhttpsharp.Headers;
 
 namespace uhttpsharp.ModelBinders
 {
     public interface IModelBinder
     {
+        /// <summary>
+        /// Gets the object from the unparsed body
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="raw"></param>
+        /// <param name="prefix"></param>
+        /// <returns></returns>
+        T Get<T>(byte[] raw, string prefix);
 
         /// <summary>
         /// Gets the object from the body of the given headers

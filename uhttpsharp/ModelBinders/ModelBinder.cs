@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using uhttpsharp.Headers;
 
 namespace uhttpsharp.ModelBinders
@@ -16,6 +13,11 @@ namespace uhttpsharp.ModelBinders
             _activator = activator;
         }
 
+
+        public T Get<T>(byte[] raw, string prefix)
+        {
+            throw new NotSupportedException();
+        }
         public T Get<T>(IHttpHeaders headers)
         {
             var retVal = _activator.Activate<T>(null);
@@ -44,6 +46,17 @@ namespace uhttpsharp.ModelBinders
 
         private object Get(Type type, IHttpHeaders headers, string prefix)
         {
+            if (type.IsPrimitive || type == typeof(string))
+            {
+                string value;
+                if (headers.TryGetByName(prefix, out value))
+                {
+                    return Convert.ChangeType(value, type);
+                }
+
+                return null;
+            }
+
             var retVal = _activator.Activate(type, null);
 
             string val;
@@ -101,7 +114,7 @@ namespace uhttpsharp.ModelBinders
 
         public static T Activate<T>(this IObjectActivator activator, Func<string, Type, object> argumentGetter)
         {
-            return (T) activator.Activate(typeof(T), argumentGetter);
+            return (T)activator.Activate(typeof(T), argumentGetter);
         }
     }
 }

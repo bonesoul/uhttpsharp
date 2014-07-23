@@ -115,13 +115,17 @@ namespace uhttpsharp.Handlers
             {
                 return null;
             }
+            return CreateIndexerFunction<IHttpRequestHandler>(arg, indexer);
+        }
+        internal static Func<IHttpContext, T, string, Task<T>> CreateIndexerFunction<T>(Type arg, MethodInfo indexer)
+        {
             var parameterType = indexer.GetParameters()[1].ParameterType;
 
-            var httpContext = Expression.Parameter(typeof(IHttpContext));
-            var inputHandler = Expression.Parameter(typeof(IHttpRequestHandler));
-            var inputObject = Expression.Parameter(typeof(string));
+            var httpContext = Expression.Parameter(typeof(IHttpContext), "context");
+            var inputHandler = Expression.Parameter(typeof(T), "instance");
+            var inputObject = Expression.Parameter(typeof(string), "input");
 
-            var tryParseMethod = parameterType.GetMethod("TryParse", new[] { typeof(string), parameterType.MakeByRefType() });
+            var tryParseMethod = parameterType.GetMethod("TryParse", new[] {typeof(string), parameterType.MakeByRefType()});
 
             Expression body;
 
@@ -130,11 +134,11 @@ namespace uhttpsharp.Handlers
                 var handlerConverted = Expression.Convert(inputHandler, arg);
                 var objectConverted =
                     Expression.Convert(
-                        Expression.Call(typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) }), inputObject,
+                        Expression.Call(typeof(Convert).GetMethod("ChangeType", new[] {typeof(object), typeof(Type)}), inputObject,
                             Expression.Constant(parameterType)), parameterType);
 
-                var indexerExpression = Expression.Call(handlerConverted, indexer, httpContext, objectConverted);
-                var returnValue = Expression.Convert(indexerExpression, typeof(IHttpRequestHandler));
+                var indexerExpression = Expression.Call (handlerConverted, indexer, httpContext, objectConverted);
+                var returnValue = Expression.Convert (indexerExpression, typeof(T));
 
                 body = returnValue;
             }
@@ -146,23 +150,25 @@ namespace uhttpsharp.Handlers
                 var objectConverted = inputConvertedVar;
 
                 var indexerExpression = Expression.Call(handlerConverted, indexer, httpContext, objectConverted);
-                var returnValue = Expression.Convert(indexerExpression, typeof(Task<IHttpRequestHandler>));
-                var returnTarget = Expression.Label(typeof(Task<IHttpRequestHandler>));
-                var returnLabel = Expression.Label(returnTarget, Expression.Convert(Expression.Constant(null), typeof(Task<IHttpRequestHandler>)));
+                var returnValue = Expression.Convert(indexerExpression, typeof(Task<T>));
+                var returnTarget = Expression.Label(typeof(Task<T>));
+                var returnLabel = Expression.Label(returnTarget,
+                    Expression.Convert(Expression.Constant(null), typeof(Task<T>)));
                 body =
                     Expression.Block(
-                    new[] { inputConvertedVar },
+                        new[] {inputConvertedVar},
                         Expression.IfThen(
-                        Expression.Call(tryParseMethod, inputObject,
-                            inputConvertedVar),
-                        Expression.Return(returnTarget, returnValue)
-                        ),
+                            Expression.Call(tryParseMethod, inputObject,
+                                inputConvertedVar),
+                            Expression.Return(returnTarget, returnValue)
+                            ),
                         returnLabel);
             }
 
-
-            return Expression.Lambda<Func<IHttpContext, IHttpRequestHandler, string, Task<IHttpRequestHandler>>>(body, httpContext, inputHandler,
-                inputObject).Compile();
+            return
+                Expression.Lambda<Func<IHttpContext, T, string, Task<T>>>(body, httpContext,
+                    inputHandler,
+                    inputObject).Compile();
         }
         private MethodInfo GetIndexer(Type arg)
         {

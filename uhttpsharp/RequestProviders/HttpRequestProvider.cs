@@ -86,7 +86,7 @@ namespace uhttpsharp.RequestProviders
         {
             int postContentLength;
             IHttpPost post;
-            if (headers.TryGetByName("content-length", out postContentLength))
+            if (headers.TryGetByName("content-length", out postContentLength) && postContentLength > 0)
             {
                 post = await HttpPost.Create(streamReader, postContentLength).ConfigureAwait(false);
             }
