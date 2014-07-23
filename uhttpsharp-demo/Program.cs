@@ -29,6 +29,7 @@ using System.Threading.Tasks;
 using System.Web.UI;
 using uhttpsharp;
 using uhttpsharp.Handlers;
+using uhttpsharp.Handlers.Compression;
 using uhttpsharp.Headers;
 using uhttpsharp.Listeners;
 using uhttpsharp.ModelBinders;
@@ -63,7 +64,6 @@ namespace uhttpsharpdemo
                 httpServer.Use(new TimingHandler());
 
                 httpServer.Use(new MyHandler());
-
                 httpServer.Use(new FileHandler());
                 httpServer.Use(new ErrorHandler());
                 httpServer.Use((context, next) =>

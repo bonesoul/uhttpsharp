@@ -60,12 +60,16 @@
     <Compile Include="Clients\ClientSslDecoerator.cs" />
     <Compile Include="Clients\IClient.cs" />
     <Compile Include="Handlers\ClassRouter.cs" />
+    <Compile Include="Handlers\Compression\CompressionHandler.cs" />
     <Compile Include="Handlers\ControllerHandler.cs" />
+    <Compile Include="Handlers\Compression\DeflateCompressor.cs" />
     <Compile Include="Handlers\FileHandler.cs" />
     <Compile Include="Controllers\IController.cs" />
     <Compile Include="Controllers\IControllerResponse.cs" />
     <Compile Include="Controllers\IPipeline.cs" />
-    <Compile Include="Handlers\GZipHandler.cs" />
+    <Compile Include="Handlers\Compression\GZipCompressor.cs" />
+    <Compile Include="Handlers\Compression\CompressedResponse.cs" />
+    <Compile Include="Handlers\Compression\ICompressor.cs" />
     <Compile Include="Handlers\IResponseProvider.cs" />
     <Compile Include="Handlers\IRestController.cs" />
     <Compile Include="Handlers\IView.cs" />
