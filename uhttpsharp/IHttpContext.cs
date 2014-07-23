@@ -12,7 +12,6 @@ namespace uhttpsharp
 {
     public interface IHttpContext
     {
-
         IHttpRequest Request { get; }
 
         IHttpResponse Response { get; set; }
@@ -22,12 +21,10 @@ namespace uhttpsharp
         dynamic State { get; }
 
         EndPoint RemoteEndPoint { get; }
-
     }
 
     public interface ICookiesStorage : IHttpHeaders
     {
-
         void Upsert(string key, string value);
 
         void Remove(string key);

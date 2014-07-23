@@ -13,11 +13,11 @@ namespace uhttpsharp.ModelBinders
             _activator = activator;
         }
 
-        public T Get<T>(byte[] raw)
+
+        public T Get<T>(byte[] raw, string prefix)
         {
             throw new NotSupportedException();
         }
-
         public T Get<T>(IHttpHeaders headers)
         {
             var retVal = _activator.Activate<T>(null);
@@ -114,7 +114,7 @@ namespace uhttpsharp.ModelBinders
 
         public static T Activate<T>(this IObjectActivator activator, Func<string, Type, object> argumentGetter)
         {
-            return (T) activator.Activate(typeof(T), argumentGetter);
+            return (T)activator.Activate(typeof(T), argumentGetter);
         }
     }
 }

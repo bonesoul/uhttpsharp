@@ -20,7 +20,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.Remoting.Messaging;
+using System.Text;
 using System.Threading.Tasks;
 using uhttpsharp;
 using uhttpsharp.Headers;
@@ -42,6 +44,115 @@ namespace uhttpsharp
         bool CloseConnection { get; }
     }
 
+    public abstract class HttpResponseBase : IHttpResponse
+    {
+        private readonly HttpResponseCode _code;
+        private IHttpHeaders _headers;
+        protected HttpResponseBase(HttpResponseCode code, IHttpHeaders headers)
+        {
+            _code = code;
+            _headers = headers;
+        }
+
+        public abstract Task WriteBody(StreamWriter writer);
+        public HttpResponseCode ResponseCode
+        {
+            get { return _code; }
+        }
+        public IHttpHeaders Headers
+        {
+            get { return _headers; }
+        }
+        public bool CloseConnection
+        {
+            get
+            {
+                string value;
+                return !(_headers.TryGetByName("Connection", out value) &&
+                         value.Equals("Keep-Alive", StringComparison.InvariantCultureIgnoreCase));
+            }
+        }
+    }
+
+    public sealed class StreamHttpResponse : HttpResponseBase
+    {
+        private readonly Stream _body;
+        public StreamHttpResponse(Stream body, HttpResponseCode code, IHttpHeaders headers) : base(code, headers)
+        {
+            _body = body;
+        }
+
+        public static IHttpResponse Create(Stream body, HttpResponseCode code = HttpResponseCode.Ok, string contentType = "text/html; charset=utf-8", bool keepAlive = true)
+        {
+            return new StreamHttpResponse(body, code, new ListHttpHeaders(new[]
+            {
+                new KeyValuePair<string, string>("Date", DateTime.UtcNow.ToString("R")),
+                new KeyValuePair<string, string>("content-type", contentType),
+                new KeyValuePair<string, string>("connection", keepAlive ? "keep-alive" : "close"), 
+                new KeyValuePair<string, string>("content-length", body.Length.ToString(CultureInfo.InvariantCulture)), 
+            }));
+        }
+
+        public async override Task WriteBody(StreamWriter writer)
+        {
+            await _body.CopyToAsync(writer.BaseStream);
+            await writer.BaseStream.FlushAsync().ConfigureAwait(false);
+        }
+    }
+
+    public sealed class EmptyHttpResponse : HttpResponseBase
+    {
+        
+        public EmptyHttpResponse(HttpResponseCode code, IHttpHeaders headers) : base(code, headers)
+        {
+            
+        }
+
+        public static IHttpResponse Create(HttpResponseCode code = HttpResponseCode.Ok, bool keepAlive = true)
+        {
+            return new EmptyHttpResponse(code, new ListHttpHeaders(new[]
+            {
+                new KeyValuePair<string, string>("Date", DateTime.UtcNow.ToString("R")),
+                new KeyValuePair<string, string>("content-type", "text/html"),
+                new KeyValuePair<string, string>("connection", keepAlive ? "keep-alive" : "close"), 
+                new KeyValuePair<string, string>("content-length", "0"), 
+            }));
+        }
+
+        public override Task WriteBody(StreamWriter writer)
+        {
+            return Task.Factory.GetCompleted();
+        }
+    }
+
+    public sealed class StringHttpResponse : HttpResponseBase
+    {
+        private readonly string _body;
+        
+        public StringHttpResponse(string body, HttpResponseCode code, IHttpHeaders headers) : base(code, headers)
+        {
+            _body = body;
+        }
+
+        public static IHttpResponse Create(string body, HttpResponseCode code = HttpResponseCode.Ok, string contentType = "text/html; charset=utf-8", bool keepAlive = true)
+        {
+            return new StringHttpResponse(body, code, new ListHttpHeaders(new[]
+            {
+                new KeyValuePair<string, string>("Date", DateTime.UtcNow.ToString("R")),
+                new KeyValuePair<string, string>("content-type", contentType),
+                new KeyValuePair<string, string>("connection", keepAlive ? "keep-alive" : "close"), 
+                new KeyValuePair<string, string>("content-length", Encoding.UTF8.GetByteCount(body).ToString(CultureInfo.InvariantCulture)), 
+            }));
+        }
+
+        public async override Task WriteBody(StreamWriter writer)
+        {
+            await writer.WriteAsync(_body);
+            await writer.BaseStream.FlushAsync().ConfigureAwait(false);
+        }
+        
+    }
+
     public sealed class HttpResponse : IHttpResponse
     {
         private Stream ContentStream { get; set; }
@@ -55,11 +166,18 @@ namespace uhttpsharp
             : this(code, "text/html; charset=utf-8", StringToStream(content), closeConnection)
         {
         }
+
+        public HttpResponse(HttpResponseCode code, string content, IEnumerable<KeyValuePair<string,string>> headers, bool closeConnection)
+            : this(code, "text/html; charset=utf-8", StringToStream(content), closeConnection,headers)
+        {
+        }
+
         public HttpResponse(string contentType, Stream contentStream, bool closeConnection)
             : this(HttpResponseCode.Ok, contentType, contentStream, closeConnection)
         {
         }
-        public HttpResponse(HttpResponseCode code, string contentType, Stream contentStream, bool keepAliveConnection)
+
+        public HttpResponse(HttpResponseCode code, string contentType, Stream contentStream, bool keepAliveConnection, IEnumerable<KeyValuePair<string, string>> headers)
         {
             ContentStream = contentStream;
 
@@ -72,8 +190,15 @@ namespace uhttpsharp
                 new KeyValuePair<string, string>("Connection", _closeConnection ? "Close" : "Keep-Alive"),
                 new KeyValuePair<string, string>("Content-Type", contentType),
                 new KeyValuePair<string, string>("Content-Length", ContentStream.Length.ToString(CultureInfo.InvariantCulture)),
-            });
+            }.Concat(headers).ToList());
+
         }
+        public HttpResponse(HttpResponseCode code, string contentType, Stream contentStream, bool keepAliveConnection) :
+            this(code, contentType, contentStream, keepAliveConnection, Enumerable.Empty<KeyValuePair<string, string>>())
+        {
+        }
+
+
         public HttpResponse(HttpResponseCode code, byte[] contentStream, bool keepAliveConnection) 
             : this (code, "text/html; charset=utf-8", new MemoryStream(contentStream), keepAliveConnection)
         {

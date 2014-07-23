@@ -33,6 +33,7 @@ using uhttpsharp.Headers;
 using uhttpsharp.Listeners;
 using uhttpsharp.ModelBinders;
 using uhttpsharp.RequestProviders;
+using uhttpsharpdemo.Controllers;
 using uhttpsharpdemo.Handlers;
 using HttpResponse = System.Web.HttpResponse;
 
@@ -52,15 +53,16 @@ namespace uhttpsharpdemo
                 //httpServer.Use(new ListenerSslDecorator(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 443)), serverCertificate));
 
                 //httpServer.Use(new SessionHandler<DateTime>(() => DateTime.Now));
-                httpServer.Use(new ControllerHandler(new JsonController(0), new JsonModelBinder(), new JsonView()));
+                httpServer.Use(new DeflateHandler());
+                httpServer.Use(new ControllerHandler(new BaseController(), new JsonModelBinder(), new JsonView()));
+                httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
+                    .With("about", new AboutHandler())
+                    .With("strings", new RestHandler<string>(new StringsRestController(), JsonResponseProvider.Default)));
                 httpServer.Use(new ExceptionHandler());
                 httpServer.Use(new ClassRouter(new MySuperHandler()));
                 httpServer.Use(new TimingHandler());
 
                 httpServer.Use(new MyHandler());
-                httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
-                                               .With("about", new AboutHandler())
-                                               .With("strings", new RestHandler<string>(new StringsRestController(), JsonResponseProvider.Default)));
 
                 httpServer.Use(new FileHandler());
                 httpServer.Use(new ErrorHandler());

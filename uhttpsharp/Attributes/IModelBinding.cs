@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,11 +13,37 @@ namespace uhttpsharp.Attributes
         T Get<T>(IHttpContext context, IModelBinder binder);
     }
 
-    internal class FromBodyAttribute : Attribute, IModelBinding
+    public class FromStateAttribute : Attribute, IModelBinding
     {
+        private readonly string _propertyName;
+        public FromStateAttribute(string propertyName)
+        {
+            _propertyName = propertyName;
+        }
         public T Get<T>(IHttpContext context, IModelBinder binder)
         {
-            return binder.Get<T>(context.Request.Post.Raw);
+            // Expando object
+            var state = (context.State as IDictionary<string,object>);
+            object real;
+            if (state != null && state.TryGetValue(_propertyName, out real) && real is T)
+            {
+                    return (T)real;
+            }
+
+            return default(T);
+        }
+    }
+
+    public class FromBodyAttribute : PrefixAttribute
+    {
+        public FromBodyAttribute(string prefix = null) : base(prefix)
+        {
+            
+        }
+
+        public override T Get<T>(IHttpContext context, IModelBinder binder)
+        {
+            return binder.Get<T>(context.Request.Post.Raw, Prefix);
         }
     }
 

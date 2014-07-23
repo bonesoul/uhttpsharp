@@ -121,9 +121,9 @@ namespace uhttpsharp.Handlers
         {
             var parameterType = indexer.GetParameters()[1].ParameterType;
 
-            var httpContext = Expression.Parameter(typeof(IHttpContext));
-            var inputHandler = Expression.Parameter(typeof(T));
-            var inputObject = Expression.Parameter(typeof(string));
+            var httpContext = Expression.Parameter(typeof(IHttpContext), "context");
+            var inputHandler = Expression.Parameter(typeof(T), "instance");
+            var inputObject = Expression.Parameter(typeof(string), "input");
 
             var tryParseMethod = parameterType.GetMethod("TryParse", new[] {typeof(string), parameterType.MakeByRefType()});
 
@@ -137,8 +137,8 @@ namespace uhttpsharp.Handlers
                         Expression.Call(typeof(Convert).GetMethod("ChangeType", new[] {typeof(object), typeof(Type)}), inputObject,
                             Expression.Constant(parameterType)), parameterType);
 
-                var indexerExpression = Expression.Call(handlerConverted, indexer, httpContext, objectConverted);
-                var returnValue = Expression.Convert(indexerExpression, typeof(T));
+                var indexerExpression = Expression.Call (handlerConverted, indexer, httpContext, objectConverted);
+                var returnValue = Expression.Convert (indexerExpression, typeof(T));
 
                 body = returnValue;
             }

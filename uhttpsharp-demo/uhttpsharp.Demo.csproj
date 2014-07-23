@@ -59,6 +59,7 @@
     <Compile Include="..\AssemblyCommon.cs">
       <Link>Properties\AssemblyCommon.cs</Link>
     </Compile>
+    <Compile Include="Controllers\DemoController.cs" />
     <Compile Include="Handlers\AboutHandler.cs" />
     <Compile Include="Handlers\ErrorHandler.cs" />
     <Compile Include="Handlers\ExceptionHandler.cs" />

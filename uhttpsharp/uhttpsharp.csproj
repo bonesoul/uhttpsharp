@@ -55,11 +55,17 @@
     <Compile Include="..\AssemblyCommon.cs">
       <Link>Properties\AssemblyCommon.cs</Link>
     </Compile>
+    <Compile Include="Attributes\IModelBinding.cs" />
+    <Compile Include="Attributes\HttpMethodAttribute.cs" />
     <Compile Include="Clients\ClientSslDecoerator.cs" />
     <Compile Include="Clients\IClient.cs" />
     <Compile Include="Handlers\ClassRouter.cs" />
     <Compile Include="Handlers\ControllerHandler.cs" />
     <Compile Include="Handlers\FileHandler.cs" />
+    <Compile Include="Controllers\IController.cs" />
+    <Compile Include="Controllers\IControllerResponse.cs" />
+    <Compile Include="Controllers\IPipeline.cs" />
+    <Compile Include="Handlers\GZipHandler.cs" />
     <Compile Include="Handlers\IResponseProvider.cs" />
     <Compile Include="Handlers\IRestController.cs" />
     <Compile Include="Handlers\IView.cs" />

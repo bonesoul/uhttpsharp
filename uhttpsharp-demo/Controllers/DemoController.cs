@@ -4,11 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using uhttpsharp;
+using uhttpsharp.Attributes;
 using uhttpsharp.Handlers;
 
 namespace uhttpsharpdemo.Controllers
 {
-    public class JsonController
+    public class EmptyPipeline : IPipeline
+    {
+        public Task<IControllerResponse> Go(Func<Task<IControllerResponse>> injectedTask, IHttpContext context)
+        {
+            return injectedTask();
+        }
+    }
+
+    public class JsonController : IController
     {
         public class Question
         {
@@ -22,6 +31,10 @@ namespace uhttpsharpdemo.Controllers
         public Task<IControllerResponse> Post([FromBody] Question question)
         {
             return Response.Render(HttpResponseCode.Ok, question);
+        }
+        public IPipeline Pipeline
+        {
+            get { return new EmptyPipeline(); }
         }
     }
     public class MyController
@@ -51,7 +64,28 @@ namespace uhttpsharpdemo.Controllers
     {
         public int A { get; set; }
     }
-    class DemoController
+    class BaseController : IController
     {
+        [HttpMethod(HttpMethods.Get)]
+        protected Task<IControllerResponse> Get()
+        {
+            return Response.Render(HttpResponseCode.Ok, new {Hello="Base!", Kaki = Enumerable.Range(0, 10000)});
+        }
+        public virtual IPipeline Pipeline
+        {
+            get { return new EmptyPipeline(); }
+        }
+
+        public IController Derived {
+            get { return new DerivedController(); }
+        }
+    }
+
+    class DerivedController : BaseController
+    {
+        protected new Task<IControllerResponse> Get()
+        {
+            return Response.Render(HttpResponseCode.Ok, new { Hello = "Derived!" });
+        }
     }
 }
