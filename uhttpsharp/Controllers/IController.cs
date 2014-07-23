@@ -1,4 +1,4 @@
-namespace uhttpsharp.Handlers
+namespace uhttpsharp.Controllers
 {
     public interface IController
     {

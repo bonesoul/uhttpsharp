@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using uhttpsharp;
 using uhttpsharp.Attributes;
+using uhttpsharp.Controllers;
 using uhttpsharp.Handlers;
 
 namespace uhttpsharpdemo.Controllers

@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using uhttpsharp.Attributes;
+using uhttpsharp.Controllers;
 using uhttpsharp.ModelBinders;
 
 namespace uhttpsharp.Handlers

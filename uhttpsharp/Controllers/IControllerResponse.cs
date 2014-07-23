@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using log4net.Core;
+using uhttpsharp.Controllers;
 
 namespace uhttpsharp.Handlers
 {
