@@ -213,10 +213,11 @@ namespace uhttpsharp.Handlers
             var modelBinderArgument = Expression.Parameter(typeof(IModelBinder), "modelBinder");
             var controllerArgument = Expression.Parameter(typeof(object), "controller");
 
-            var foundMethod = (from method in controllerMethod.ControllerType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                               let attribute = method.GetCustomAttribute<HttpMethodAttribute>()
-                               where attribute != null && attribute.HttpMethod == controllerMethod.Method
-                               select method).FirstOrDefault();
+            var foundMethod =
+                (from method in controllerMethod.ControllerType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                let attribute = method.GetCustomAttribute<HttpMethodAttribute>()
+                where attribute != null && attribute.HttpMethod == controllerMethod.Method
+                select method).FirstOrDefault();
 
             if (foundMethod == null)
             {
