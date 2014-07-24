@@ -59,6 +59,10 @@
     <Compile Include="Attributes\HttpMethodAttribute.cs" />
     <Compile Include="Clients\ClientSslDecoerator.cs" />
     <Compile Include="Clients\IClient.cs" />
+    <Compile Include="Controllers\ErrorContainer.cs" />
+    <Compile Include="Controllers\IErrorContainer.cs" />
+    <Compile Include="Controllers\IRequestParameter.cs" />
+    <Compile Include="Attributes\NullableAttribute.cs" />
     <Compile Include="Handlers\ClassRouter.cs" />
     <Compile Include="Handlers\Compression\CompressionHandler.cs" />
     <Compile Include="Handlers\ControllerHandler.cs" />
