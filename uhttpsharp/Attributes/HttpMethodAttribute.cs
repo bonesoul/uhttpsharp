@@ -2,7 +2,7 @@
 
 namespace uhttpsharp.Attributes
 {
-    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
     public class HttpMethodAttribute : Attribute
     {
         private readonly HttpMethods _httpMethod;
