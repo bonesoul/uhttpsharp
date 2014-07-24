@@ -11,8 +11,10 @@ using uhttpsharp.ModelBinders;
 namespace uhttpsharp.Handlers
 {
 
-    // Need some kind of way to prevent default behavior of controller that inherits a base controller...
-    // since we are not using virtual methods 
+    /// <summary>
+    /// Need some kind of way to prevent default behavior of controller that inherits a base controller...
+    /// since we are not using virtual methods 
+    /// </summary>
     public class ControllerHandler : IHttpRequestHandler
     {
         sealed class ControllerMethod
@@ -213,6 +215,8 @@ namespace uhttpsharp.Handlers
             var modelBinderArgument = Expression.Parameter(typeof(IModelBinder), "modelBinder");
             var controllerArgument = Expression.Parameter(typeof(object), "controller");
 
+            var errorContainerVariable = Expression.Variable(typeof(IErrorContainer));
+            
             var foundMethod =
                 (from method in controllerMethod.ControllerType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
                 let attribute = method.GetCustomAttribute<HttpMethodAttribute>()
@@ -226,24 +230,59 @@ namespace uhttpsharp.Handlers
 
             var parameters = foundMethod.GetParameters();
 
-            IList<Expression> arguments = new List<Expression>(parameters.Length);
+            IList<ParameterExpression> variables = new List<ParameterExpression>(parameters.Length);
+
+            IList<Expression> body = new List<Expression>(parameters.Length);
 
             var modelBindingGetMethod = typeof(IModelBinding).GetMethods()[0];
 
             foreach (var parameter in parameters)
             {
-                var modelBindingAttribute = parameter.GetCustomAttributes().OfType<IModelBinding>().Single();
+                var variable = Expression.Variable(parameter.ParameterType, parameter.Name);
+                variables.Add(variable);
 
-                arguments.Add(Expression.Call(Expression.Constant(modelBindingAttribute),
-                    modelBindingGetMethod.MakeGenericMethod(parameter.ParameterType),
-                    httpContextArgument, modelBinderArgument
-                    ));
+                var attributes = parameter.GetCustomAttributes().ToList();
+
+                var modelBindingAttribute = attributes.OfType<IModelBinding>().Single();
+
+                body.Add(
+                    Expression.Assign(variable,
+                        Expression.Call(Expression.Constant(modelBindingAttribute),
+                            modelBindingGetMethod.MakeGenericMethod(parameter.ParameterType),
+                            httpContextArgument, modelBinderArgument
+                            )));
+
+                if (!attributes.OfType<NullableAttribute>().Any())
+                {
+                    body.Add(Expression.IfThen(Expression.Equal(variable, Expression.Constant(null)),
+                        Expression.Call(errorContainerVariable, "Log", Type.EmptyTypes,
+                            Expression.Constant(parameter.Name + " Is not found (null) and not marked as nullable."))));
+                }
+
+                if (parameter.ParameterType.GetInterfaces().Contains(typeof(IValidate)))
+                {
+                    body.Add(Expression.IfThen(Expression.NotEqual(variable, Expression.Constant(null)),
+                        Expression.Call(variable, "Validate", Type.EmptyTypes, errorContainerVariable)));
+                }
+
             }
 
-            var methodCallExp = Expression.Call(Expression.Convert(controllerArgument, controllerMethod.ControllerType), foundMethod, arguments);
+            var methodCallExp = Expression.Call(Expression.Convert(controllerArgument, controllerMethod.ControllerType), foundMethod, variables);
+
+            var labelTarget = Expression.Label(typeof(Task<IControllerResponse>));
+            
+            var methodBody = Expression.Block(
+                variables.Concat(new[] { errorContainerVariable }),
+                Expression.Assign(errorContainerVariable, Expression.New(typeof(ErrorContainer))),
+                Expression.Block(body),
+                Expression.IfThen(Expression.Not(Expression.Property(errorContainerVariable, "Any")),
+                        Expression.Return(labelTarget, methodCallExp)),
+
+                Expression.Label(labelTarget, Expression.Call(errorContainerVariable, "GetResponse", Type.EmptyTypes))
+                );
 
             var parameterExpressions = new[] { httpContextArgument, modelBinderArgument, controllerArgument };
-            var lambda = Expression.Lambda<ControllerFunction>(methodCallExp, parameterExpressions);
+            var lambda = Expression.Lambda<ControllerFunction>(methodBody, parameterExpressions);
 
             return lambda.Compile();
         }

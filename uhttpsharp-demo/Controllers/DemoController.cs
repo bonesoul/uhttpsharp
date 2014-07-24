@@ -59,17 +59,31 @@ namespace uhttpsharpdemo.Controllers
             return new MyController(id);
         }
     }
-    public class MyRequest
+    public class MyRequest : IValidate
     {
         public int A { get; set; }
+        public void Validate(IErrorContainer container)
+        {
+            if (A == 0)
+            {
+                container.Log("A cannot be zero");
+            }
+        }
     }
     class BaseController : IController
     {
         [HttpMethod(HttpMethods.Get)]
-        protected Task<IControllerResponse> Get()
+        public Task<IControllerResponse> Get()
         {
             return Response.Render(HttpResponseCode.Ok, new {Hello="Base!", Kaki = Enumerable.Range(0, 10000)});
         }
+
+        [HttpMethod(HttpMethods.Post)]
+        public Task<IControllerResponse> Post([FromBody] MyRequest a)
+        {
+            return Response.Render(HttpResponseCode.Ok, a);
+        }
+
         public virtual IPipeline Pipeline
         {
             get { return new EmptyPipeline(); }
