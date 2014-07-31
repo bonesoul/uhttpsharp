@@ -270,11 +270,13 @@ namespace uhttpsharp.Handlers
             var methodCallExp = Expression.Call(Expression.Convert(controllerArgument, controllerMethod.ControllerType), foundMethod, variables);
 
             var labelTarget = Expression.Label(typeof(Task<IControllerResponse>));
-            
+
+            var parameterBindingExpression = body.Count > 0 ? (Expression)Expression.Block(body) : Expression.Empty();
+
             var methodBody = Expression.Block(
                 variables.Concat(new[] { errorContainerVariable }),
                 Expression.Assign(errorContainerVariable, Expression.New(typeof(ErrorContainer))),
-                Expression.Block(body),
+                parameterBindingExpression,
                 Expression.IfThen(Expression.Not(Expression.Property(errorContainerVariable, "Any")),
                         Expression.Return(labelTarget, methodCallExp)),
 
