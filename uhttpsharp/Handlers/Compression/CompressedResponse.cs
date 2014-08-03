@@ -36,7 +36,7 @@ namespace uhttpsharp.Handlers.Compression
         }
 
 
-        public static async Task<IHttpResponse> Create(IHttpResponse child, Func<Stream, Stream> streamFactory)
+        public static async Task<IHttpResponse> Create(string name, IHttpResponse child, Func<Stream, Stream> streamFactory)
         {
             var memoryStream = new MemoryStream();
             using (var deflateStream = streamFactory(memoryStream))
@@ -46,17 +46,17 @@ namespace uhttpsharp.Handlers.Compression
                 await deflateWriter.FlushAsync();
             }
 
-            return new CompressedResponse(child, memoryStream, "deflate");
+            return new CompressedResponse(child, memoryStream, name);
         }
 
         public static Task<IHttpResponse> CreateDeflate(IHttpResponse child)
         {
-            return Create(child, s => new DeflateStream(s, CompressionMode.Compress, true));
+            return Create("deflate",child, s => new DeflateStream(s, CompressionMode.Compress, true));
         }
 
         public static Task<IHttpResponse> CreateGZip(IHttpResponse child)
         {
-            return Create(child, s => new GZipStream(s, CompressionMode.Compress, true));
+            return Create("gzip",child, s => new GZipStream(s, CompressionMode.Compress, true));
         }
 
         public async Task WriteBody(StreamWriter writer)
