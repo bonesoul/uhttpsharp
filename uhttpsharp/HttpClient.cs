@@ -51,7 +51,7 @@ namespace uhttpsharp
             _requestHandler = requestHandler;
             _requestProvider = requestProvider;
 
-            _stream = new BufferedStream(_client.Stream);
+            _stream = new BufferedStream(_client.Stream, 8192);
             
             Logger.InfoFormat("Got Client {0}", _remoteEndPoint);
 
@@ -67,7 +67,7 @@ namespace uhttpsharp
                 while (_client.Connected)
                 {
                     // TODO : Configuration.
-                    var limitedStream = new LimitedStream(_stream, readLimit: 1024*1024, writeLimit: 1024*1024);
+                    var limitedStream = new NotFlushingStream(new LimitedStream(_stream, readLimit: 1024*1024, writeLimit: 1024*1024));
                     var streamReader = new StreamReader(limitedStream);
                     
                     var request = await _requestProvider.Provide(streamReader).ConfigureAwait(false);
@@ -84,8 +84,15 @@ namespace uhttpsharp
 
                         if (context.Response != null)
                         {
-                            var streamWriter = new StreamWriter(limitedStream);
+                            var streamWriter = new StreamWriter(limitedStream) { AutoFlush = false };
+                            
                             await WriteResponse(context, streamWriter).ConfigureAwait(false);
+                            await limitedStream.ExplicitFlushAsync().ConfigureAwait(false);
+
+                            if (!request.Headers.KeepAliveConnection() || context.Response.CloseConnection)
+                            {
+                                _client.Close();
+                            }
                         }
 
                         UpdateLastOperationTime();
@@ -128,21 +135,13 @@ namespace uhttpsharp
                     .ConfigureAwait(false);
             }
 
-            await writer.FlushAsync().ConfigureAwait(false);
-
             // Empty Line
-            await writer.BaseStream.WriteAsync(CrLfBuffer, 0, CrLfBuffer.Length).ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             // Body
             await response.WriteBody(writer).ConfigureAwait(false);
-
             await writer.FlushAsync().ConfigureAwait(false);
-            await writer.BaseStream.FlushAsync().ConfigureAwait(false);
-
-            if (!request.Headers.KeepAliveConnection() || response.CloseConnection)
-            {
-                _client.Close();
-            }
+            
         }
 
         public IClient Client
@@ -170,6 +169,88 @@ namespace uhttpsharp
 
     }
 
+    internal class NotFlushingStream : Stream
+    {
+        private readonly Stream _child;
+        public NotFlushingStream(Stream child)
+        {
+            _child = child;
+        }
+
+
+        public void ExplicitFlush()
+        {
+            _child.Flush();
+        }
+
+        public Task ExplicitFlushAsync()
+        {
+            return _child.FlushAsync();
+        }
+
+        public override void Flush()
+        {
+            // _child.Flush();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            return _child.Seek(offset, origin);
+        }
+        public override void SetLength(long value)
+        {
+            _child.SetLength(value);
+        }
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            return _child.Read(buffer, offset, count);
+        }
+
+        public override int ReadByte()
+        {
+            return _child.ReadByte();
+        }
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            _child.Write(buffer, offset, count);
+        }
+        public override void WriteByte(byte value)
+        {
+            _child.WriteByte(value);
+        }
+        public override bool CanRead
+        {
+            get { return _child.CanRead; }
+        }
+        public override bool CanSeek
+        {
+            get { return _child.CanSeek; }
+        }
+
+        public override bool CanWrite
+        {
+            get { return _child.CanWrite; }
+        }
+        public override long Length
+        {
+            get { return _child.Length; }
+        }
+        public override long Position
+        {
+            get { return _child.Position; }
+            set { _child.Position = value; }
+        }
+        public override int ReadTimeout
+        {
+            get { return _child.ReadTimeout; }
+            set { _child.ReadTimeout = value; }
+        }
+        public override int WriteTimeout
+        {
+            get { return _child.WriteTimeout; }
+            set { _child.WriteTimeout = value; }
+        }
+    }
 
     public static class RequestHandlersAggregateExtensions
     {

@@ -95,6 +95,7 @@ namespace uhttpsharp
 
         public async override Task WriteBody(StreamWriter writer)
         {
+            await writer.FlushAsync().ConfigureAwait(false);
             await _body.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
             await writer.BaseStream.FlushAsync().ConfigureAwait(false);
         }

@@ -63,6 +63,7 @@ namespace uhttpsharp.Handlers.Compression
         {
             _memoryStream.Position = 0;
 
+            await writer.FlushAsync().ConfigureAwait(false);
             await _memoryStream.CopyToAsync(writer.BaseStream).ConfigureAwait(false);
         }
         public HttpResponseCode ResponseCode

@@ -2,7 +2,7 @@
 <package>
 	<metadata>
 		<id>uHttpSharp</id>
-		<version>0.1.6.7</version>
+		<version>0.1.6.8</version>
 		<title>uHttpSharp</title>
 		<authors>Shani Elharrar, Joe White, Hüseyin Uslu</authors>
 		<owners>Shani Elharrar, Joe White, Hüseyin Uslu</owners>
@@ -20,5 +20,6 @@
 	</metadata>
 	<files>
 		<file src="uhttpsharp/bin/debug/uHttpSharp.dll" target="lib\net40" />
+		<file src="uhttpsharp/bin/debug/uHttpSharp.pdb" target="lib\net40" />
 	</files>
 </package>
