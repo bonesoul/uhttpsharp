@@ -81,7 +81,7 @@ namespace uhttpsharp.Handlers
                     if (getNextByIndex == null) //Indexer is not found
                     {
 
-                        await next();
+                        await next().ConfigureAwait(false);
                         return;
                     }
 
@@ -89,22 +89,22 @@ namespace uhttpsharp.Handlers
 
                     if (returnedTask == null) //Indexer found, but returned null (for whatever reason)
                     {
-                        await next();
+                        await next().ConfigureAwait(false);
                         return;
                     }
 
-                    handler = await returnedTask;
+                    handler = await returnedTask.ConfigureAwait(false);
                 }
 
                 // Incase that one of the methods returned null (Indexer / Getter)
                 if (handler == null)
                 {
-                    await next();
+                    await next().ConfigureAwait(false);
                     return;
                 }
             }
 
-            await handler.Handle(context, next);
+            await handler.Handle(context, next).ConfigureAwait(false);
         }
 
         private Func<IHttpContext, IHttpRequestHandler, string, Task<IHttpRequestHandler>> GetIndexerRouter(Type arg)

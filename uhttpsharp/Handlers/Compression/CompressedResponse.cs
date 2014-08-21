@@ -43,7 +43,7 @@ namespace uhttpsharp.Handlers.Compression
             using (var deflateWriter = new StreamWriter(deflateStream))
             {
                 await child.WriteBody(deflateWriter).ConfigureAwait(false);
-                await deflateWriter.FlushAsync();
+                await deflateWriter.FlushAsync().ConfigureAwait(false);
             }
 
             return new CompressedResponse(child, memoryStream, name);

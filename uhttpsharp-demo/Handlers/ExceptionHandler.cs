@@ -10,7 +10,7 @@ namespace uhttpsharpdemo.Handlers
         {
             try
             {
-                await next();
+                await next().ConfigureAwait(false);
             }
             catch (HttpException e)
             {

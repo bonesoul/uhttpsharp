@@ -48,7 +48,7 @@ namespace uhttpsharp.Headers
         {
             char[] rawEncoded = new char[postContentLength];
             
-            int readBytes = await reader.ReadAsync(rawEncoded, 0, rawEncoded.Length);
+            int readBytes = await reader.ReadAsync(rawEncoded, 0, rawEncoded.Length).ConfigureAwait(false);
 
             byte[] raw = Encoding.UTF8.GetBytes(rawEncoded, 0, readBytes);
             

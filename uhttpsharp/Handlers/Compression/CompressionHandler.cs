@@ -31,7 +31,7 @@ namespace uhttpsharp.Handlers.Compression
 
         public async Task Handle(IHttpContext context, Func<Task> next)
         {
-            await next();
+            await next().ConfigureAwait(false);
 
             if (context.Response == null)
             {

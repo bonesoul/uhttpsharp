@@ -85,7 +85,7 @@ namespace uhttpsharp
                         if (context.Response != null)
                         {
                             var streamWriter = new StreamWriter(limitedStream);
-                            await WriteResponse(context, streamWriter);
+                            await WriteResponse(context, streamWriter).ConfigureAwait(false);
                         }
 
                         UpdateLastOperationTime();
@@ -113,11 +113,12 @@ namespace uhttpsharp
             // Headers
             await writer.WriteLineAsync(string.Format("HTTP/1.1 {0} {1}",
                 (int)response.ResponseCode,
-                response.ResponseCode));
+                response.ResponseCode))
+                .ConfigureAwait(false);
             
             foreach (var header in response.Headers)
             {
-                await writer.WriteLineAsync(string.Format("{0}: {1}", header.Key, header.Value));
+                await writer.WriteLineAsync(string.Format("{0}: {1}", header.Key, header.Value)).ConfigureAwait(false);
             }
 
             // Cookies
