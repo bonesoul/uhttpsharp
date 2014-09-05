@@ -21,10 +21,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
-using uhttpsharp;
 using uhttpsharp.Headers;
 
 namespace uhttpsharp
@@ -47,7 +45,7 @@ namespace uhttpsharp
     public abstract class HttpResponseBase : IHttpResponse
     {
         private readonly HttpResponseCode _code;
-        private IHttpHeaders _headers;
+        private readonly IHttpHeaders _headers;
         protected HttpResponseBase(HttpResponseCode code, IHttpHeaders headers)
         {
             _code = code;

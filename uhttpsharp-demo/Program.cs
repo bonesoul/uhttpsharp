@@ -17,26 +17,19 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Dynamic;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
-using System.Web.UI;
 using uhttpsharp;
 using uhttpsharp.Handlers;
 using uhttpsharp.Handlers.Compression;
-using uhttpsharp.Headers;
 using uhttpsharp.Listeners;
 using uhttpsharp.ModelBinders;
 using uhttpsharp.RequestProviders;
 using uhttpsharpdemo.Controllers;
 using uhttpsharpdemo.Handlers;
-using HttpResponse = System.Web.HttpResponse;
 
 namespace uhttpsharpdemo
 {

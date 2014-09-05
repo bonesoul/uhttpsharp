@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
 using uhttpsharp;
 
 namespace uhttpsharpdemo
 {
     class SomeRestController
     {
-
-        IDictionary<int, string> _strings = new Dictionary<int, string>() { { 1 , "Hahaha"}};
+        readonly IDictionary<int, string> _strings = new Dictionary<int, string>() { { 1 , "Hahaha"}};
 
         public Task<uhttpsharp.HttpResponse> Get(uhttpsharp.IHttpRequest request)
         {
