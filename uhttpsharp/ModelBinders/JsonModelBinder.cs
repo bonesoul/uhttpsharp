@@ -7,8 +7,16 @@ namespace uhttpsharp.ModelBinders
 {
     public class JsonModelBinder : IModelBinder
     {
-        public JsonModelBinder()
-        {   
+        private readonly JsonSerializer _serializer;
+
+        public JsonModelBinder(JsonSerializer serializer)
+        {
+            _serializer = serializer;
+        }
+
+        public JsonModelBinder() : this(JsonSerializer.CreateDefault())
+        {
+            
         }
         public T Get<T>(byte[] raw, string prefix)
         {
@@ -31,7 +39,7 @@ namespace uhttpsharp.ModelBinders
                 jToken = jToken.SelectToken(prefix);
             }
 
-            return jToken.ToObject<T>();
+            return jToken.ToObject<T>(_serializer);
         }
         public T Get<T>(IHttpHeaders headers) 
         {
