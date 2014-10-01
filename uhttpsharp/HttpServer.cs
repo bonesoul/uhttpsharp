@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using uhttpsharp.Listeners;
+using uhttpsharp.RequestProviders;
 
 namespace uhttpsharp
 {
@@ -33,7 +34,6 @@ namespace uhttpsharp
 
         private readonly IList<IHttpRequestHandler> _handlers = new List<IHttpRequestHandler>();
         private readonly IList<IHttpListener> _listeners = new List<IHttpListener>();
-
         private readonly IHttpRequestProvider _requestProvider;
 
 
@@ -68,17 +68,18 @@ namespace uhttpsharp
 
         private async void Listen(IHttpListener listener)
         {
+            var aggregatedHandler = _handlers.Aggregate();
+
             while (_isActive)
             {
                 try
                 {
-                    new HttpClient(await listener.GetClient().ConfigureAwait(false), _handlers, _requestProvider);
+                    new HttpClientHandler(await listener.GetClient().ConfigureAwait(false), aggregatedHandler, _requestProvider);
                 }
                 catch (Exception e)
                 {
                     Logger.Warn("Error while getting client", e);
                 }
-                
             }
 
             Logger.InfoFormat("Embedded uhttpserver stopped.");

@@ -17,10 +17,10 @@
  */
 
 using System;
-using System.Net.Cache;
 using System.Text;
 using System.Threading.Tasks;
 using uhttpsharp;
+using uhttpsharp.Headers;
 
 namespace uhttpsharpdemo.Handlers
 {
@@ -35,10 +35,10 @@ namespace uhttpsharpdemo.Handlers
             _keepAliveResponse = new HttpResponse(HttpResponseCode.Ok, contents, true);
             _response = new HttpResponse(HttpResponseCode.Ok, contents, false);
         }
-
+        
         public Task Handle(IHttpContext context, Func<Task> next)
         {
-            context.Response = context.Request.Headers.KeepAliveConnection() ? _keepAliveResponse : _response; ;
+            context.Response = context.Request.Headers.KeepAliveConnection() ? _keepAliveResponse : _response;
             return Task.Factory.GetCompleted();
         }
     }

@@ -19,6 +19,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using uhttpsharp.Headers;
 
 namespace uhttpsharp.Handlers
 {
@@ -30,6 +31,7 @@ namespace uhttpsharp.Handlers
 
         static FileHandler()
         {
+
             DefaultMimeType = "text/plain";
             MimeTypes = new Dictionary<string, string>
                             {
@@ -60,12 +62,11 @@ namespace uhttpsharp.Handlers
 
             if (!File.Exists(path))
             {
-                await next();
+                await next().ConfigureAwait(false);
 
                 return;
             }
                 
-
             context.Response = new HttpResponse(GetContentType(path), File.OpenRead(path), context.Request.Headers.KeepAliveConnection());
         }
     }
