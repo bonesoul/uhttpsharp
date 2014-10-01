@@ -1,3 +1,9 @@
 /_ReSharper.uhttpsharp/
 /*.6.0.ReSharper.user
 /*.suo
+/packages/*
+*/bin/*
+*/obj/*
+*.psess
+*.vsp
+*.nupkg

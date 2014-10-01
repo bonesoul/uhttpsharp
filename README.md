@@ -1,16 +1,48 @@
-# �HttpSharp [![Build status](https://ci.appveyor.com/api/projects/status?id=1schhjbpx7oomrx7)](https://ci.appveyor.com/project/uhttpsharp)
+﻿# µHttpSharp
 
 A very lightweight & simple embedded http server for c# 
 
-Usage : 
+Master | Provider
+------ | --------
+[![Build Status][TeamCityImgMaster]][TeamCityLinkMaster] | Windows CI Provided By [JetBrains][] and [CodeBetter][]
+[![Build status](https://ci.appveyor.com/api/projects/status/1schhjbpx7oomrx7)](https://ci.appveyor.com/project/shanielh/uHttpSharp) | Windows CI Provided By [AppVeyor][]
+[![Build Status][MonoImgMaster]][MonoLinkMaster] | Mono CI Provided by [travis-ci][] 
 
-	using (var httpServer = new HttpServer(800, new HttpRequestProvider()))
+[TeamCityImgMaster]:http://teamcity.codebetter.com/app/rest/builds/buildType:\(id:bt1191\)/statusIcon
+[TeamCityLinkMaster]:http://teamcity.codebetter.com/viewLog.html?buildTypeId=bt1191&buildId=lastFinished&guest=1
+
+[MonoImgMaster]:https://travis-ci.org/Code-Sharp/uHttpSharp.png?branch=master
+[MonoLinkMaster]:https://travis-ci.org/Code-Sharp/uHttpSharp
+
+[travis-ci]:https://travis-ci.org/
+[AppVeyor]:http://www.appveyor.com/
+[JetBrains]:http://www.jetbrains.com/
+[CodeBetter]:http://codebetter.com/
+
+## Usage
+
+A [NuGet Package](https://www.nuget.org/packages/uHttpSharp/ "Go to µHttpSharp NuGet Package page")  is available, Install via NuGet Package Manager :
+
+	install-package uHttpSharp
+
+A sample for usage : 
+
+	using (var httpServer = new HttpServer(new HttpRequestProvider()))
 	{
+		// Normal port 80 :
+		httpServer.Use(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 80)));
+        
+		// Ssl Support :
+		var serverCertificate = X509Certificate.CreateFromCertFile(@"TempCert.cer");
+		httpServer.Use(new ListenerSslDecorator(new TcpListenerAdapter(new TcpListener(IPAddress.Loopback, 443)), serverCertificate));
+
+		// Request handling : 
 		httpServer.Use((context, next) => {
 			Console.WriteLine("Got Request!");
 			return next();
 		});
 
+		// Handler classes : 
 		httpServer.Use(new TimingHandler());
 		httpServer.Use(new HttpRouter().With(string.Empty, new IndexHandler())
 										.With("about", new AboutHandler()));
@@ -18,24 +50,22 @@ Usage :
 		httpServer.Use(new ErrorHandler());
 		
 		httpServer.Start();
+		
 		Console.ReadLine();
 	}
 	
-## Under Construction
+## Features
 
-µHttpSharp is going through heavy modifications to be more like [koa](http://koajs.com) :  
-
-* ~~new `IHttpContext` interface (Gathers `IHttpResponse`, `IHttpRequest` and maybe even session)~~ (Done)
-* ~~new `httpServer.Use((context, next) => { next(); });` syntax~~ (Done)
-
-More modifications will be made to make it more "user friendly" out of the box :
+µHttpSharp is a simple http server inspired by [koa](http://koajs.com), and has the following features :
 
 * [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) controllers
-* NuGet package
+* Ssl Support
+* Easy Chain-Of-Responsibility architecture
+
 
 ## Performance
 
-�HttpSharp manages to handle **13000 requests a sec** (With Keep-Alive support) on core i5 machine, cpu goes to 27%, memory consumption and number of threads is stable.
+µHttpSharp manages to handle **13000 requests a sec** (With Keep-Alive support) on core i5 machine, cpu goes to 27%, memory consumption and number of threads is stable.
 
 	ab -n 10000 -c 50 -k -s 2 http://localhost:8000/
 	
@@ -97,6 +127,3 @@ More modifications will be made to make it more "user friendly" out of the box :
 * Use it
 * Open Issues
 * Fork and Push requests
-
-
-
