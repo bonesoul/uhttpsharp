@@ -201,6 +201,11 @@ namespace uhttpsharp
             : this (code, "text/html; charset=utf-8", new MemoryStream(contentStream), keepAliveConnection)
         {
         }
+        
+        public HttpResponse(HttpResponseCode code, string contentType, string content, bool closeConnection)
+            : this(code, contentType, StringToStream(content), closeConnection)
+        {
+        }
 
         public static HttpResponse CreateWithMessage(HttpResponseCode code, string message, bool keepAliveConnection, string body = "")
         {
