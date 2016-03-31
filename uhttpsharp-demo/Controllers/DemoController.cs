@@ -96,7 +96,8 @@ namespace uhttpsharpdemo.Controllers
 
     class DerivedController : BaseController
     {
-        protected new Task<IControllerResponse> Get()
+        [HttpMethod(HttpMethods.Get)]
+        public new Task<IControllerResponse> Get()
         {
             return Response.Render(HttpResponseCode.Ok, new { Hello = "Derived!" });
         }
