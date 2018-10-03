@@ -101,7 +101,7 @@
     <Compile Include="IHttpMethodProvider.cs" />
     <Compile Include="LimitedStream.cs" />
     <Compile Include="Listeners\IHttpListener.cs" />
-    <Compile Include="Listeners\SslListenerDecoerator.cs" />
+    <Compile Include="Listeners\SslListenerDecorator.cs" />
     <Compile Include="Listeners\TcpListenerAdapter.cs" />
     <Compile Include="ModelBinders\IModelBinder.cs" />
     <Compile Include="ModelBinders\JsonModelBinder.cs" />
