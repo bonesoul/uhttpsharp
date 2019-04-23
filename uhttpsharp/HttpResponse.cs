@@ -160,18 +160,18 @@ namespace uhttpsharp
         private readonly IHttpHeaders _headers;
         private readonly HttpResponseCode _responseCode;
 
-        public HttpResponse(HttpResponseCode code, string content, bool closeConnection)
-            : this(code, "text/html; charset=utf-8", StringToStream(content), closeConnection)
+        public HttpResponse(HttpResponseCode code, string content, bool keepAliveConnection)
+            : this(code, "text/html; charset=utf-8", StringToStream(content), keepAliveConnection)
         {
         }
 
-        public HttpResponse(HttpResponseCode code, string content, IEnumerable<KeyValuePair<string,string>> headers, bool closeConnection)
-            : this(code, "text/html; charset=utf-8", StringToStream(content), closeConnection,headers)
+        public HttpResponse(HttpResponseCode code, string content, IEnumerable<KeyValuePair<string,string>> headers, bool keepAliveConnection)
+            : this(code, "text/html; charset=utf-8", StringToStream(content), keepAliveConnection, headers)
         {
         }
 
-        public HttpResponse(string contentType, Stream contentStream, bool closeConnection)
-            : this(HttpResponseCode.Ok, contentType, contentStream, closeConnection)
+        public HttpResponse(string contentType, Stream contentStream, bool keepAliveConnection)
+            : this(HttpResponseCode.Ok, contentType, contentStream, keepAliveConnection)
         {
         }
 
